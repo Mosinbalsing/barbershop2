@@ -1,6 +1,5 @@
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
-import { storeData } from "../../../helper/storage";
 import {
   View,
   Text,
@@ -16,7 +15,7 @@ import CheckIcon from "react-native-vector-icons/Ionicons";
 
 import { fetchApi } from "../../../Api/http_services";
 import { apiPath } from "../../../environment/environment_urls";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getData, removeData, storeData } from "../../../helper/storage";
 import Loader from "../../../shared/components/Loader";
 
 /* ================= TYPES ================= */
@@ -105,12 +104,9 @@ export default function LoginScreen() {
 
       // Remember Me
       if (rememberMe) {
-        await AsyncStorage.setItem(
-          "remember_login",
-          JSON.stringify(loginData)
-        );
+        await storeData("remember_login", loginData);
       } else {
-        await AsyncStorage.removeItem("remember_login");
+        await removeData("remember_login");
       }
 
       // Save tokens
@@ -140,10 +136,9 @@ export default function LoginScreen() {
   useEffect(() => {
     const loadSavedCredentials = async (): Promise<void> => {
       try {
-        const savedData = await AsyncStorage.getItem("remember_login");
+        const savedData = await getData("remember_login");
         if (savedData) {
-          const parsed: LoginDataType = JSON.parse(savedData);
-          setLoginData(parsed);
+          setLoginData(savedData as LoginDataType);
           setRememberMe(true);
         }
       } catch (error) {
