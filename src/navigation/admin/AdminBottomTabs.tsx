@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { View, Text, Platform } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Admin from '../../screens/admin/Admin';
 
@@ -54,7 +54,7 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
   </View>
 );
 
-const BottomTabNavigator = () => {
+const AdminBottomTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -76,39 +76,31 @@ const BottomTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Voters"
+        name="Barber"
         component={Admin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('account-group-outline', 'Voters', focused),
+            renderIcon('account-tie-outline', 'Barber', focused),
         }}
       />
       <Tab.Screen
-        name="Allocate"
+        name="User"
         component={Admin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('swap-horizontal', 'Allocate', focused),
+            renderIcon('account-group-outline', 'User', focused),
         }}
       />
       <Tab.Screen
-        name="Comment"
+        name="Adminprofile"
         component={Admin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('comment-outline', 'Comment', focused),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={Admin}
-        options={{
-          tabBarIcon: ({ focused }) =>
-            renderIcon('account-outline', 'Profile', focused),
+            renderIcon('account-circle-outline', 'Adminprofile', focused),
         }}
       />
     </Tab.Navigator>
   );
 };
 
-export default BottomTabNavigator;
+export default AdminBottomTabs;

@@ -198,7 +198,7 @@ export default function LoginScreen() {
           onPress={() => setRememberMe(!rememberMe)}
         >
           <Icon
-            name={rememberMe ? 'checkbox' : 'square-outline'}
+            name={rememberMe ? 'checkbox-outline' : 'square-outline'}
             size={20}
             color="#F08000"
           />
