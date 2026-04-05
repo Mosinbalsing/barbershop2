@@ -6,6 +6,7 @@ import Admin from "../../screens/admin/AdminDashboard";
 import BarberDashboard from "../../screens/barber/dashboard/BarberDashboard";
 import RegisterScreen from "../../screens/auth/register/RegisterScreen";
 import AdminBottomTabs from "../admin/AdminBottomTabs";
+import BarberBottomTabs from "../barber/BarberBottomTabs";
 const AppNavigation = () => {
     const Stack = createNativeStackNavigator();
   return (
@@ -16,6 +17,7 @@ const AppNavigation = () => {
         <Stack.Screen name="admin" component={Admin} />
         <Stack.Screen name="barberDashboard" component={BarberDashboard} />
         <Stack.Screen name="SuperAdminTabs" component={AdminBottomTabs} />
+        <Stack.Screen name="barber" component={BarberBottomTabs} />
       </Stack.Navigator>
   )
 }

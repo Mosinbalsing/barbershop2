@@ -57,7 +57,7 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
   </View>
 );
 
-const AdminBottomTabs = () => {
+const BarberBottomTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -106,4 +106,4 @@ const AdminBottomTabs = () => {
   );
 };
 
-export default AdminBottomTabs;
+export default BarberBottomTabs;
