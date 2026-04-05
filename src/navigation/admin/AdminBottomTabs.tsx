@@ -1,9 +1,12 @@
 
 import React from 'react';
 import { View, Text, Platform } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Admin from '../../screens/admin/Admin';
+import AdminDashboard from '../../screens/admin/AdminDashboard';
+import BarbersAdmin from '../../screens/admin/BarbersAdmin';
+import UsersAdmin from '../../screens/admin/UsersAdmin';
+import AdminProfile from '../../screens/admin/AdminProfile';
 
 const Tab = createBottomTabNavigator();
 
@@ -69,34 +72,34 @@ const AdminBottomTabs = () => {
     >
       <Tab.Screen
         name="Home"
-        component={Admin}
+        component={AdminDashboard}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('home-outline', 'Home', focused),
+            renderIcon('home', 'Home', focused),
         }}
       />
       <Tab.Screen
         name="Barber"
-        component={Admin}
+        component={BarbersAdmin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('account-tie-outline', 'Barber', focused),
+            renderIcon('scissors', 'Barber', focused),
         }}
       />
       <Tab.Screen
         name="User"
-        component={Admin}
+        component={UsersAdmin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('account-group-outline', 'User', focused),
+            renderIcon('users', 'User', focused),
         }}
       />
       <Tab.Screen
         name="Adminprofile"
-        component={Admin}
+        component={AdminProfile}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('account-circle-outline', 'Adminprofile', focused),
+            renderIcon('user', 'Adminprofile', focused),
         }}
       />
     </Tab.Navigator>

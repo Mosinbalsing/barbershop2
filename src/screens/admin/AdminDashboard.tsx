@@ -1,7 +1,7 @@
 import React from 'react'
 import { View,Text } from 'react-native'
 
-const Admin = () => {
+const AdminDashboard = () => {
   return (
     <View>
       <Text>This is Admin Screen</Text>
@@ -9,4 +9,4 @@ const Admin = () => {
   )
 }
 
-export default Admin
+export default AdminDashboard

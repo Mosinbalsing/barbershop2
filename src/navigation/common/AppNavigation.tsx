@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 import React from "react";
 import{createNativeStackNavigator} from "@react-navigation/native-stack";
 import LoginScreen from "../../screens/auth/login/LoginScreen";
-import Admin from "../../screens/admin/Admin";
+import Admin from "../../screens/admin/AdminDashboard";
 import BarberDashboard from "../../screens/barber/dashboard/BarberDashboard";
 import RegisterScreen from "../../screens/auth/register/RegisterScreen";
 import AdminBottomTabs from "../admin/AdminBottomTabs";
