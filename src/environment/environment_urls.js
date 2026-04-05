@@ -4,7 +4,10 @@ export const apiPath ={
     sendotp:"api/auth/send-otp/",
     register:"api/auth/register/",
     profile:"/api/auth/profile/",
-    refreshtoken:'/api/auth/refresh/'
+    refreshtoken:'/api/auth/refresh/',
+    resetPassword: 'api/auth/reset-password/',
+    sendResetOtp: 'api/auth/send-reset-otp/'
+    
   }
 }
  
