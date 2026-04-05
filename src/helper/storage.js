@@ -1,5 +1,7 @@
 // storage.js
+// cspell:ignore MMKV mmkv
 import { MMKV } from "react-native-mmkv";
+console.log("MMKV", MMKV);
 
 const storage = new MMKV();
 

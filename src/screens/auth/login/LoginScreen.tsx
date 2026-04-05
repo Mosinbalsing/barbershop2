@@ -1,5 +1,5 @@
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import React, { useState, useEffect } from "react";
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,14 @@ import {
   ScrollView,
   Alert,
   Platform,
-} from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import CheckIcon from "react-native-vector-icons/Ionicons";
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import CheckIcon from 'react-native-vector-icons/Ionicons';
 
-import { fetchApi } from "../../../Api/http_services";
-import { apiPath } from "../../../environment/environment_urls";
-import { getData, removeData, storeData } from "../../../helper/storage";
-import Loader from "../../../shared/components/Loader";
+import { fetchApi } from '../../../Api/http_services';
+import { apiPath } from '../../../environment/environment_urls';
+import { getData, removeData, storeData } from '../../../helper/storage';
+import Loader from '../../../shared/components/Loader';
 
 /* ================= TYPES ================= */
 
@@ -51,8 +51,8 @@ export default function LoginScreen() {
   const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   const [loginData, setLoginData] = useState<LoginDataType>({
-    mobile_no: "",
-    password: "",
+    mobile_no: '',
+    password: '',
   });
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -62,20 +62,20 @@ export default function LoginScreen() {
   const navigateByRole = (roleName: string): void => {
     const role = roleName?.toLowerCase()?.trim();
 
-    if (role === "superadmin") {
+    if (role === 'superadmin') {
       navigation.reset({
         index: 0,
-        routes: [{ name: "SuperAdminTabs" }],
+        routes: [{ name: 'SuperAdminTabs' }],
       });
-    } else if (role === "admin") {
+    } else if (role === 'barber') {
       navigation.reset({
         index: 0,
-        routes: [{ name: "AdminTabs" }],
+        routes: [{ name: 'AdminTabs' }],
       });
     } else {
       navigation.reset({
         index: 0,
-        routes: [{ name: "VolunteerTabs" }],
+        routes: [{ name: 'VolunteerTabs' }],
       });
     }
   };
@@ -85,49 +85,50 @@ export default function LoginScreen() {
 
     try {
       const login_Res: LoginResponseType = await fetchApi(
-        "POST",
+        'POST',
         apiPath?.auth?.login,
         null,
         false,
         loginData,
         false,
-        "application/json"
+        'application/json',
       );
-
+      console.log("this is login_Res",login_Res);
+      
       const isLoginSuccess =
         Boolean(login_Res?.access_token) || login_Res?.status === true;
 
       if (!isLoginSuccess) {
-        Alert.alert("Error", login_Res?.message || "Login Failed");
+        Alert.alert('Error', login_Res?.message || 'Login Failed');
         return;
       }
 
       // Remember Me
       if (rememberMe) {
-        await storeData("remember_login", loginData);
+        await storeData('remember_login', loginData);
       } else {
-        await removeData("remember_login");
+        await removeData('remember_login');
       }
 
       // Save tokens
       if (login_Res?.access_token) {
-        await storeData("access_token", login_Res.access_token);
-        await storeData("refresh_token", login_Res.refresh_token);
-        await storeData("user_role", login_Res.role_name);
-        await storeData("user_id", login_Res.user_id);
-        await storeData("assigned", login_Res.assigned);
-        await storeData("user_name", login_Res.user_name);
+        await storeData('access_token', login_Res.access_token);
+        await storeData('refresh_token', login_Res.refresh_token);
+        await storeData('user_role', login_Res.role_name);
+        await storeData('user_id', login_Res.user_id);
+        await storeData('assigned', login_Res.assigned);
+        await storeData('user_name', login_Res.user_name);
       }
 
       if (!login_Res?.role_name) {
-        Alert.alert("Error", "Role not found in login response");
+        Alert.alert('Error', 'Role not found in login response');
         return;
       }
 
       navigateByRole(login_Res.role_name);
     } catch (error) {
-      console.warn("LOGIN ERROR 👉", error);
-      Alert.alert("Error", "Something went wrong");
+      console.warn('LOGIN ERROR 👉', error);
+      Alert.alert('Error', 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
@@ -136,13 +137,13 @@ export default function LoginScreen() {
   useEffect(() => {
     const loadSavedCredentials = async (): Promise<void> => {
       try {
-        const savedData = await getData("remember_login");
+        const savedData = await getData('remember_login');
         if (savedData) {
           setLoginData(savedData as LoginDataType);
           setRememberMe(true);
         }
       } catch (error) {
-        console.log("Error loading saved login:", error);
+        console.log('Error loading saved login:', error);
       }
     };
 
@@ -155,9 +156,10 @@ export default function LoginScreen() {
 
       <Text style={styles.label}>Mobile Number</Text>
       <TextInput
-        style={[styles.input, { color: "black" }]}
+        style={[styles.input, { color: 'black' }]}
         placeholder="Enter your mobile number"
         placeholderTextColor="gray"
+        keyboardType="numeric"
         value={loginData.mobile_no}
         onChangeText={(text: string) =>
           setLoginData({ ...loginData, mobile_no: text })
@@ -168,11 +170,11 @@ export default function LoginScreen() {
       <View
         style={[
           styles.passContainer,
-          Platform.OS === "ios" && { paddingVertical: 10 },
+          Platform.OS === 'ios' && { paddingVertical: 10 },
         ]}
       >
         <TextInput
-          style={[styles.passInput, { color: "black" }]}
+          style={[styles.passInput, { color: 'black' }]}
           secureTextEntry={!passwordVisible}
           placeholderTextColor="gray"
           placeholder="Enter your password"
@@ -181,11 +183,9 @@ export default function LoginScreen() {
             setLoginData({ ...loginData, password: text })
           }
         />
-        <TouchableOpacity
-          onPress={() => setPasswordVisible(!passwordVisible)}
-        >
+        <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
           <Icon
-            name={passwordVisible ? "eye" : "eye-off"}
+            name={passwordVisible ? 'eye' : 'eye-off'}
             size={22}
             color="#555"
           />
@@ -198,14 +198,14 @@ export default function LoginScreen() {
           onPress={() => setRememberMe(!rememberMe)}
         >
           <Icon
-            name={rememberMe ? "checkbox" : "square-outline"}
+            name={rememberMe ? 'checkbox' : 'square-outline'}
             size={20}
             color="#F08000"
           />
           <Text style={styles.link}>Remember Me</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("PhoneNoS")}>
+        <TouchableOpacity onPress={() => navigation.navigate('PhoneNoS')}>
           <Text style={styles.link}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>
@@ -214,11 +214,9 @@ export default function LoginScreen() {
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
-      <View style={{ flexDirection: "row", justifyContent: "center", gap: 5 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 5 }}>
         <Text style={styles.footer}>Don’t have an account?</Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("RegisterScreen")}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
           <Text style={styles.link}>Register Now!</Text>
         </TouchableOpacity>
       </View>
@@ -234,73 +232,73 @@ const styles = StyleSheet.create({
   container: {
     padding: 25,
     paddingBottom: 20,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     flexGrow: 1,
   },
   header: {
     fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
+    fontWeight: '700',
+    textAlign: 'center',
     marginBottom: 30,
-    color: "#0F2C4A",
+    color: '#0F2C4A',
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 5,
-    color: "#333",
+    color: '#333',
   },
   input: {
     borderWidth: 1,
-    borderColor: "#F08000",
+    borderColor: '#F08000',
     padding: 12,
     borderRadius: 6,
     marginBottom: 15,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   passContainer: {
     borderWidth: 1,
-    borderColor: "#F08000",
+    borderColor: '#F08000',
     borderRadius: 6,
     paddingHorizontal: 12,
     marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   passInput: {
     flex: 1,
     marginRight: 10,
   },
   button: {
-    backgroundColor: "#F08000",
+    backgroundColor: '#F08000',
     paddingVertical: 14,
     borderRadius: 30,
-    alignItems: "center",
+    alignItems: 'center',
     marginVertical: 20,
   },
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   footer: {
-    textAlign: "center",
-    color: "#444",
+    textAlign: 'center',
+    color: '#444',
   },
   link: {
-    color: "#F08000",
-    fontWeight: "600",
+    color: '#F08000',
+    fontWeight: '600',
   },
   rememberRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginVertical: 10,
   },
   rememberMe: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
 });
