@@ -3,12 +3,15 @@ import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AdminDashboard from '../../screens/admin/AdminDashboard';
-import BarbersAdmin from '../../screens/admin/BarbersAdmin';
-import UsersAdmin from '../../screens/admin/UsersAdmin';
-import AdminProfile from '../../screens/admin/AdminProfile';
+
+import BarberDashboard from '../../screens/barber/dashboard/BarberDashboard';
+import Bookings from '../../screens/barber/bookings/Bookings';
+import Services from '../../screens/barber/services/Services';
+import Setting from '../../screens/barber/setting/Setting';
+import Profile from '../../screens/barber/profile/Profile';
 
 const Tab = createBottomTabNavigator();
+
 
 const renderIcon = (icon: string, label: string, focused: boolean) => (
   <View style={{ alignItems: "center", marginTop: 10 }}>
@@ -72,34 +75,42 @@ const BarberBottomTabs = () => {
     >
       <Tab.Screen
         name="Home"
-        component={AdminDashboard}
+        component={BarberDashboard}
         options={{
           tabBarIcon: ({ focused }) =>
             renderIcon('home', 'Home', focused),
         }}
       />
       <Tab.Screen
-        name="Barber"
-        component={BarbersAdmin}
+        name="Bookings"
+        component={Bookings}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('scissors', 'Barber', focused),
+            renderIcon('calendar', 'Bookings', focused),
         }}
       />
       <Tab.Screen
-        name="User"
-        component={UsersAdmin}
+        name="Services"
+        component={Services}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('users', 'User', focused),
+            renderIcon('briefcase', 'Services', focused),
+        }}
+      />
+      <Tab.Screen
+        name="Setting"
+        component={Setting}
+        options={{
+          tabBarIcon: ({ focused }) =>
+            renderIcon('cog', 'Setting', focused),
         }}
       />
       <Tab.Screen
         name="Profile"
-        component={AdminProfile}
+        component={Profile}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('user', 'Adminprofile', focused),
+            renderIcon('user', 'Profile', focused),
         }}
       />
     </Tab.Navigator>

@@ -70,7 +70,7 @@ export default function LoginScreen() {
     } else if (role === 'barber') {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'AdminTabs' }],
+        routes: [{ name: 'barber' }],
       });
     } else {
       navigation.reset({
