@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { Modal, TextInput, Platform as RNPlatform } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Calendar } from 'react-native-calendars';
 import {
   View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Animated, Platform, ToastAndroid, Appearance
@@ -61,11 +63,27 @@ const Setting = () => {
     });
   };
 
-  // Time picker placeholder
+  // Time picker modal state
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [timeKey, setTimeKey] = useState('openTime');
+
+  // Open time picker modal
   const pickTime = (key) => {
-    // Replace with real time picker
-    const newTime = key === 'openTime' ? '09:00' : '19:00';
-    setState(s => ({ ...s, [key]: newTime }));
+    setTimeKey(key);
+    setTimePickerVisible(true);
+  };
+
+  // Save time from picker
+  const handleTimePicked = (date) => {
+    // Format to HH:MM
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    setState(s => ({ ...s, [timeKey]: `${hours}:${minutes}` }));
+    setTimePickerVisible(false);
+  };
+
+  const handleTimeCancel = () => {
+    setTimePickerVisible(false);
   };
 
   // Slot select
@@ -81,22 +99,37 @@ const Setting = () => {
     setShowCalendar(true);
   };
   // Calendar selection logic using react-native-calendars
-  const [range, setRange] = useState({});
+  const [range, setRange] = useState({ startDate: null, endDate: null });
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const [reason, setReason] = useState('');
+  const [reasonModalVisible, setReasonModalVisible] = useState(false);
+  const [reasonInput, setReasonInput] = useState('');
   const handleCalendarSelect = (day) => {
+    const now = Date.now();
     if (calendarMode === 'single') {
       setState(s => ({ ...s, emergencyDates: [day.dateString] }));
       setShowCalendar(false);
+      setRange({ startDate: null, endDate: null });
     } else {
-      // Range selection logic
+      // Range selection logic: require two separate clicks, with a gap
       if (!range.startDate || (range.startDate && range.endDate)) {
         setRange({ startDate: day.dateString, endDate: null });
+        setLastClickTime(now);
       } else if (range.startDate && !range.endDate) {
+        // Only allow if at least 400ms gap between clicks
+        if (now - lastClickTime < 400) return;
         if (day.dateString > range.startDate) {
           setRange({ startDate: range.startDate, endDate: day.dateString });
           setState(s => ({ ...s, emergencyDates: [range.startDate, day.dateString] }));
           setShowCalendar(false);
-        } else {
+        } else if (day.dateString < range.startDate) {
           setRange({ startDate: day.dateString, endDate: null });
+          setLastClickTime(now);
+        } else if (day.dateString === range.startDate) {
+          // If user taps the same date, treat as single day range
+          setRange({ startDate: day.dateString, endDate: day.dateString });
+          setState(s => ({ ...s, emergencyDates: [day.dateString, day.dateString] }));
+          setShowCalendar(false);
         }
       }
     }
@@ -220,6 +253,17 @@ const Setting = () => {
               <Icon name="clock-o" size={16} color="#D11A2A" />
               <Text style={styles.timeBtnText}>Close: {state.closeTime}</Text>
             </TouchableOpacity>
+            {/* Time Picker Modal */}
+            <DateTimePickerModal
+              isVisible={timePickerVisible}
+              mode="time"
+              date={new Date(`1970-01-01T${state[timeKey]}:00`)}
+              onConfirm={handleTimePicked}
+              onCancel={handleTimeCancel}
+              is24Hour={true}
+              headerTextIOS={timeKey === 'openTime' ? 'Select Open Time' : 'Select Close Time'}
+              display="spinner"
+            />
           </View>
           {errors.timing && <Text style={styles.error}>{errors.timing}</Text>}
         </Section>
@@ -262,6 +306,53 @@ const Setting = () => {
                   </TouchableOpacity>
                 )}
               </View>
+              {/* Reason Field */}
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ color: '#23232A', fontWeight: '600', marginBottom: 4 }}>Reason for Emergency Holiday</Text>
+                <View style={{ backgroundColor: '#f4f6fa', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }}>
+                  <Text
+                    style={{ color: '#23232A', fontSize: 15 }}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >{reason}</Text>
+                  <TouchableOpacity onPress={() => {
+                    setReasonInput(reason);
+                    setReasonModalVisible(true);
+                  }}>
+                    <Text style={{ color: '#1976D2', fontWeight: 'bold', marginTop: 4 }}>Edit Reason</Text>
+                  </TouchableOpacity>
+                      {/* Reason Edit Modal */}
+                      <Modal
+                        visible={reasonModalVisible}
+                        transparent
+                        animationType="fade"
+                        onRequestClose={() => setReasonModalVisible(false)}
+                      >
+                        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
+                          <View style={{ backgroundColor: '#fff', borderRadius: 12, padding: 20, width: '80%' }}>
+                            <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>Reason for Emergency Holiday</Text>
+                            <TextInput
+                              value={reasonInput}
+                              onChangeText={setReasonInput}
+                              placeholder="Enter reason..."
+                              style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, minHeight: 40, marginBottom: 16 }}
+                              multiline
+                              numberOfLines={3}
+                              autoFocus
+                            />
+                            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                              <TouchableOpacity onPress={() => setReasonModalVisible(false)} style={{ marginRight: 16 }}>
+                                <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>Cancel</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => { setReason(reasonInput); setReasonModalVisible(false); }}>
+                                <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>Save</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </Modal>
+                </View>
+              </View>
               {/* Show selected date/range */}
               {state.emergencyDates.length === 1 && (
                 <Text style={styles.emergencyMsg}>Closed on: {state.emergencyDates[0]}</Text>
@@ -269,8 +360,7 @@ const Setting = () => {
               {state.emergencyDates.length === 2 && (
                 <Text style={styles.emergencyMsg}>Closed from: {state.emergencyDates[0]} to {state.emergencyDates[1]}</Text>
               )}
-              <Text style={styles.emergencyMsg}>{state.emergencyMsg}</Text>
-              {/* ...existing code... */}
+              <Text style={styles.emergencyMsg}>{reason || state.emergencyMsg}</Text>
             </>
           )}
           
