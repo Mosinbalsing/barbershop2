@@ -14,6 +14,7 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { fetchApi } from "../../../Api/http_services";
 import { apiPath } from "../../../environment/environment_urls";
+import { premiumColors, premiumShadow } from "../../../shared/theme/premiumTheme";
 
 export default function RegisterScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -137,7 +138,11 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Register</Text>
+      <View style={styles.brandCard}>
+        <Text style={styles.kicker}>Barbershop admin</Text>
+        <Text style={styles.header}>Register</Text>
+        <Text style={styles.subHeader}>Create your shop account and start managing premium bookings.</Text>
+      </View>
 
       <View style={styles.stepperRow}>
         <View style={[styles.stepItem, currentStep === 1 ? styles.stepItemActive : null]}>
@@ -156,7 +161,7 @@ export default function RegisterScreen() {
               <TextInput
                 style={[styles.input, { color: 'black' }]}
                 placeholder="First Name"
-                placeholderTextColor={"gray"}
+                placeholderTextColor={premiumColors.muted}
                 value={ResigerData?.first_name}
                 onChangeText={(text) =>
                   setRegisterData({ ...ResigerData, first_name: text })
@@ -169,7 +174,7 @@ export default function RegisterScreen() {
               <TextInput
                 style={[styles.input, { color: 'black' }]}
                 placeholder="Last Name"
-                placeholderTextColor={"gray"}
+                placeholderTextColor={premiumColors.muted}
                 value={ResigerData?.last_name}
                 onChangeText={(text) =>
                   setRegisterData({ ...ResigerData, last_name: text })
@@ -184,7 +189,7 @@ export default function RegisterScreen() {
             placeholder="Mobile Number"
             keyboardType="number-pad"
             maxLength={10}
-            placeholderTextColor={"gray"}
+            placeholderTextColor={premiumColors.muted}
             value={ResigerData?.mobile_no}
             onChangeText={(text) => {
               const digitsOnly = text.replace(/\D/g, "").slice(0, 10);
@@ -232,7 +237,7 @@ export default function RegisterScreen() {
           <TextInput
             style={[styles.input, { color: "black" }]}
             placeholder="Enter 6-digit OTP"
-            placeholderTextColor={"gray"}
+            placeholderTextColor={premiumColors.muted}
             keyboardType="number-pad"
             maxLength={6}
             value={ResigerData?.otp}
@@ -246,13 +251,13 @@ export default function RegisterScreen() {
           <View style={[
             styles.passContainer,
             ResigerData?.password?.length > 0 && !isValidPassword(ResigerData?.password)
-              ? { borderColor: 'red' }
+              ? { borderColor: premiumColors.primary }
               : null,
           ]}>
             <TextInput
               style={[styles.passInput, Platform.OS === "ios" && { paddingVertical: 11 }]}
               placeholder="Enter Password"
-              placeholderTextColor={"gray"}
+              placeholderTextColor={premiumColors.muted}
               secureTextEntry={!passwordVisible}
               value={ResigerData?.password}
               onChangeText={(text) =>
@@ -263,14 +268,14 @@ export default function RegisterScreen() {
               <Icon
                 name={passwordVisible ? "eye" : "eye-off"}
                 size={22}
-                color="#555"
+                color={premiumColors.primary}
               />
             </TouchableOpacity>
           </View>
           <Text style={[
             styles.hint,
             ResigerData?.password?.length > 0 && !isValidPassword(ResigerData?.password)
-              ? { color: 'red' }
+              ? { color: premiumColors.primary }
               : null,
           ]}>Must be 8+ chars, include uppercase, number, and special character.</Text>
 
@@ -279,12 +284,12 @@ export default function RegisterScreen() {
           <View style={[
             styles.passContainer,
             ResigerData?.confirm_password?.length > 0 && (ResigerData?.password !== ResigerData?.confirm_password)
-              ? { borderColor: 'red' }
+              ? { borderColor: premiumColors.primary }
               : null,
           ]}>
             <TextInput
               style={[styles.passInput, Platform.OS === "ios" && { paddingVertical: 11 }]}
-              placeholderTextColor={"gray"}
+              placeholderTextColor={premiumColors.muted}
               placeholder="Confirm Password"
               secureTextEntry={!confirmVisible}
               value={ResigerData?.confirm_password}
@@ -296,12 +301,12 @@ export default function RegisterScreen() {
               <Icon
                 name={confirmVisible ? "eye" : "eye-off"}
                 size={22}
-                color="#555"
+                color={premiumColors.primary}
               />
             </TouchableOpacity>
           </View>
           {ResigerData?.confirm_password?.length > 0 && (ResigerData?.password !== ResigerData?.confirm_password) ? (
-            <Text style={[styles.hint, { color: 'red' }]}>Passwords do not match.</Text>
+            <Text style={[styles.hint, { color: premiumColors.primary }]}>Passwords do not match.</Text>
           ) : null}
         </>
       )}
@@ -313,7 +318,7 @@ export default function RegisterScreen() {
           style={[
             styles.button,
             (!otpSent || !/^\d{6}$/.test(ResigerData?.otp || "") || !isValidPassword(ResigerData?.password) || ResigerData?.password !== ResigerData?.confirm_password)
-              ? { backgroundColor: '#ccc' }
+              ? { backgroundColor: premiumColors.line }
               : null,
           ]}
           disabled={!otpSent || !/^\d{6}$/.test(ResigerData?.otp || "") || !isValidPassword(ResigerData?.password) || ResigerData?.password !== ResigerData?.confirm_password}
@@ -335,7 +340,7 @@ export default function RegisterScreen() {
      
 
       {submitError ? (
-        <Text style={{ color: 'red', textAlign: 'center' }}>{submitError}</Text>
+        <Text style={{ color: premiumColors.primary, textAlign: 'center' }}>{submitError}</Text>
       ) : null}
       <Modal
         visible={showSuccess}
@@ -366,32 +371,52 @@ const styles = StyleSheet.create({
   container: {
     padding: 25,
     paddingBottom: 40,
-    backgroundColor: "#fff",
+    backgroundColor: premiumColors.canvas,
     flexGrow: 1,
+  },
+  brandCard: {
+    backgroundColor: premiumColors.surface,
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+    ...premiumShadow,
+  },
+  kicker: {
+    color: premiumColors.primary,
+    fontSize: 12,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    marginBottom: 8,
   },
 
   header: {
-    fontSize: 28,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 30,
-    color: "#0F2C4A",
+    fontSize: 34,
+    fontWeight: "900",
+    marginBottom: 8,
+    color: premiumColors.ink,
+  },
+  subHeader: {
+    color: premiumColors.muted,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   label: {
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 5,
-    color: "#333",
+    color: premiumColors.ink,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: "#F08000",
+    borderColor: premiumColors.line,
     padding: 12,
-    borderRadius: 6,
+    borderRadius: 14,
     marginBottom: 15,
-    backgroundColor: "#fff",
+    backgroundColor: premiumColors.surface,
   },
 
   row: {
@@ -411,18 +436,18 @@ const styles = StyleSheet.create({
   stepItem: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#f3c58e",
-    borderRadius: 20,
+    borderColor: premiumColors.line,
+    borderRadius: 16,
     paddingVertical: 8,
     alignItems: "center",
-    backgroundColor: "#fff8f0",
+    backgroundColor: premiumColors.surface,
   },
   stepItemActive: {
-    borderColor: "#F08000",
-    backgroundColor: "#F08000",
+    borderColor: premiumColors.primary,
+    backgroundColor: premiumColors.primary,
   },
   stepText: {
-    color: "#a86a1f",
+    color: premiumColors.muted,
     fontWeight: "600",
     fontSize: 12,
   },
@@ -434,14 +459,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   changeNumberText: {
-    color: "#F08000",
+    color: premiumColors.primary,
     fontWeight: "600",
   },
 
-  dropdown: {
+  dropdownCompact: {
     borderWidth: 1,
-    borderColor: "#F08000",
-    borderRadius: 6,
+    borderColor: premiumColors.line,
+    borderRadius: 14,
     padding: 12,
     marginBottom: 15,
     flexDirection: "row",
@@ -452,8 +477,8 @@ const styles = StyleSheet.create({
 
   passContainer: {
     borderWidth: 1,
-    borderColor: "#F08000",
-    borderRadius: 6,
+    borderColor: premiumColors.line,
+    borderRadius: 14,
     paddingHorizontal: 12,
     // paddingVertical: 10,
     marginBottom: 10,
@@ -470,7 +495,7 @@ const styles = StyleSheet.create({
   },
 
   hint: {
-    color: "gray",
+    color: premiumColors.muted,
     fontSize: 12,
     marginBottom: 15,
   },
@@ -483,8 +508,8 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: premiumColors.surface,
+    borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.2,
@@ -494,21 +519,21 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#0F2C4A',
+    color: premiumColors.ink,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalMessage: {
     fontSize: 14,
-    color: '#333',
+    color: premiumColors.muted,
     textAlign: 'center',
     marginBottom: 8,
   },
 
   button: {
-    backgroundColor: "#F08000",
+    backgroundColor: premiumColors.primary,
     paddingVertical: 14,
-    borderRadius: 30,
+    borderRadius: 18,
     alignItems: "center",
     marginVertical: 20,
   },
@@ -521,18 +546,18 @@ const styles = StyleSheet.create({
 
   footer: {
     textAlign: "center",
-    color: "#444",
+    color: premiumColors.muted,
   },
 
   link: {
-    color: "#F08000",
-    fontWeight: "600",
+    color: premiumColors.primary,
+    fontWeight: "900",
   },
   // drop doown style
 
   pickerWrapper: {
     borderWidth: 0.8,
-    borderColor: "#F08000",
+    borderColor: premiumColors.line,
     borderRadius: 5,
     // paddingHorizontal: 10,
     // backgroundColor: "#FFF5EB",
@@ -542,7 +567,7 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     height: 45,
-    borderColor: "#e6c8a2",
+    borderColor: premiumColors.line,
 
     borderWidth: 0.2,
     // borderRadius:10,
@@ -555,7 +580,7 @@ const styles = StyleSheet.create({
   dropdownlabel: {
     color: "black",
     position: "absolute",
-    backgroundColor: "red",
+    backgroundColor: premiumColors.primary,
     left: 22,
     top: 8,
     zIndex: 999,
@@ -568,7 +593,7 @@ const styles = StyleSheet.create({
   selectedTextStyle: {
     fontSize: 14,
     paddingHorizontal: 6,
-    color: "#444",
+    color: premiumColors.ink,
   },
   iconStyle: {
     width: 20,

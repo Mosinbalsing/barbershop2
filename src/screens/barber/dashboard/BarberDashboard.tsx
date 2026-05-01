@@ -1,396 +1,287 @@
-
 import React, { useMemo } from 'react';
-
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { MetricCard, PremiumHeader } from '../../../shared/components/PremiumScaffold';
+import { premiumColors, premiumShadow, premiumSpacing } from '../../../shared/theme/premiumTheme';
 
 const appointments = [
-  {
-    time: '12:30 PM',
-    name: 'David Smith',
-    service: 'Haircut, Beard Trim',
-    id: '#1267',
-    duration: '30m',
-    status: 'Confirmed',
-    avatar: require('../../../assets/images/PNG/logo-light.png'), // Placeholder
-  },
-  {
-    time: '12:30 PM',
-    name: 'Michael Johnson',
-    service: 'Haircut, Beard Trim',
-    id: '#1267',
-    duration: '30m',
-    status: 'Confirmed',
-    avatar: require('../../../assets/images/PNG/logo-light.png'), // Placeholder
-  },
-  {
-    time: '12:30 PM',
-    name: 'Ryan Harris',
-    service: 'Haircut, Beard Trim',
-    id: '#1267',
-    duration: '30m',
-    status: 'Confirmed',
-    avatar: require('../../../assets/images/PNG/logo-light.png'), // Placeholder
-  },
+  { time: '09:00 AM', name: 'Oliver Thompson', service: 'Hair & Beard Cut', status: 'Success' },
+  { time: '10:30 AM', name: 'Liam Walker', service: 'Beard Trim & Style', status: 'Pending' },
+  { time: '11:00 AM', name: 'William Wilson', service: 'Hair & Beard Cut', status: 'Pending' },
+  { time: '12:00 PM', name: 'Ethan James', service: 'Trendy Hair Blonde', status: 'Pending' },
+  { time: '01:00 PM', name: 'James Taylor', service: 'Hair Cut & Blonde', status: 'Pending' },
 ];
 
-const bookingsData = [12, 15, 18, 22, 25, 20, 21]; // Example data for bar chart
-const days = ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'];
-const completedBookings = bookingsData.reduce((a, b) => a + b, 0);
+const week = [
+  { day: 'Sun', date: '11', active: true },
+  { day: 'Mon', date: '12' },
+  { day: 'Tue', date: '13' },
+  { day: 'Wed', date: '14' },
+  { day: 'Thu', date: '15' },
+];
 
 const BarberDashboard = () => {
-  const navigation = useNavigation();
-
-  // Dynamic greeting
+  const navigation = useNavigation<any>();
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return '🌅 Good Morning';
-    if (hour < 18) return '☀️ Good Afternoon';
-    return '🌙 Good Evening';
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   }, []);
 
-  // Find peak day index
-  const peakDayIdx = bookingsData.indexOf(Math.max(...bookingsData));
-
-  // Dummy customer names for up to 10 bookings
-  const upcomingBookings = appointments.slice(0, 10);
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Image source={require('../../../assets/images/PNG/logo-light.png')} style={styles.logo} />
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="search" size={20} color="#222" />
+    <View style={styles.screen}>
+      <PremiumHeader
+        eyebrow="Barber admin"
+        title={`${greeting}, Shoyeb`}
+        subtitle="Your shop is on pace for a strong booking day."
+        right={
+          <TouchableOpacity style={styles.headerAction}>
+            <Icon name="bell-o" size={18} color={premiumColors.primary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.profileButton}>
-            <Image source={require('../../../assets/images/PNG/logo-light.png')} style={styles.profileAvatar} />
-            <View style={styles.notificationBadge}><Text style={styles.badgeText}>3</Text></View>
-          </TouchableOpacity>
+        }
+      />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroCard}>
+          <View style={styles.heroTop}>
+            <View>
+              <Text style={styles.heroLabel}>Total Booking</Text>
+              <Text style={styles.heroValue}>2K</Text>
+              <Text style={styles.heroDetail}>+8% from last week</Text>
+            </View>
+            <View style={styles.avatarCluster}>
+              <Image source={require('../../../assets/images/PNG/logo-light.png')} style={styles.avatar} />
+              <View style={styles.smallBubble}>
+                <Icon name="calendar-check-o" size={15} color={premiumColors.secondary} />
+              </View>
+            </View>
+          </View>
+          <View style={styles.metricsRow}>
+            <MetricCard label="Appointments" value="6" detail="Today" />
+            <MetricCard label="Retention" value="12%" detail="Past 90 days" tone="secondary" />
+            <MetricCard label="Productivity" value="45%" detail="Past 90 days" />
+          </View>
         </View>
-      </View>
 
-      {/* Dynamic Greeting */}
-      <Text style={styles.greeting}>{greeting}, John!</Text>
-      <Text style={styles.subGreeting}>Here's what's happening today</Text>
+        <View style={styles.calendarRow}>
+          {week.map(item => (
+            <TouchableOpacity key={item.date} style={[styles.datePill, item.active && styles.datePillActive]}>
+              <Text style={[styles.dateDay, item.active && styles.dateActiveText]}>{item.day}</Text>
+              <Text style={[styles.dateNum, item.active && styles.dateActiveText]}>{item.date}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      {/* Horizontal Upcoming Bookings */}
-      <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+          <Text style={styles.sectionTitle}>Appointment</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Bookings')}>
-            <Text style={styles.sectionAction}>View All &gt;</Text>
+            <Text style={styles.sectionAction}>View all</Text>
           </TouchableOpacity>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList} contentContainerStyle={{ gap: 12 }}>
-          {upcomingBookings.map((item, idx) => (
-            <View key={idx} style={styles.horizontalCard}>
+
+        <View style={styles.listCard}>
+          {appointments.map((item, index) => (
+            <TouchableOpacity key={item.name} style={[styles.appointmentRow, index === appointments.length - 1 && styles.lastRow]}>
+              <Image source={require('../../../assets/images/PNG/logo-light.png')} style={styles.customerAvatar} />
+              <View style={styles.appointmentText}>
+                <Text style={styles.customerName}>{item.name}</Text>
+                <Text style={styles.customerService}>{item.service}</Text>
+              </View>
+              <View style={[styles.statusBadge, item.status === 'Success' && styles.statusSuccess]}>
+                <Text style={[styles.statusText, item.status === 'Success' && styles.statusSuccessText]}>{item.status}</Text>
+              </View>
               <Text style={styles.time}>{item.time}</Text>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.service}>{item.service}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Completed Bookings */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="check-circle" size={20} color="#D4AF37" style={{ marginRight: 8 }} />
-            <Text style={styles.sectionTitle}>Completed Bookings</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.sectionAction}>This Week</Text>
-            <Text style={styles.sectionAction}>Past Week ▼</Text>
-          </View>
-        </View>
-        <View style={styles.completedRow}>
-          <Text style={styles.completedCount}>{completedBookings}</Text>
-          <Text style={styles.completedLabel}>Completed</Text>
-        </View>
-        {/* Bar Chart */}
-        <View style={styles.barChartRow}>
-          {bookingsData.map((val, idx) => (
-            <View key={idx} style={styles.barItem}>
-              <View style={[
-                styles.bar,
-                { height: val * 3 },
-                idx === peakDayIdx && styles.barPeak
-              ]} />
-              <Text style={[styles.barLabel, idx === peakDayIdx && styles.barLabelPeak]}>{days[idx]}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
-        <Text style={styles.peakDayText}>Peak Day: {days[peakDayIdx]}</Text>
-      </View>
-
-      {/* Completed Cards */}
-      <View style={styles.completedCardsRow}>
-        {appointments.map((item, idx) => (
-          <View key={idx} style={styles.completedCard}>
-            <Text style={styles.time}>{item.time}</Text>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.service}>{item.service}</Text>
-            <View style={styles.row}>
-              <Text style={styles.duration}>{item.duration}</Text>
-              <View style={styles.statusBadge}><Text style={styles.statusText}>{item.status}</Text></View>
-            </View>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  horizontalList: {
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  horizontalCard: {
-    backgroundColor: '#23232A',
-    borderRadius: 14,
-    padding: 14,
-    minWidth: 140,
-    marginRight: 0,
-    marginLeft: 0,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  barPeak: {
-    backgroundColor: '#FFD700',
-    borderWidth: 2,
-    borderColor: '#D4AF37',
-  },
-  barLabelPeak: {
-    color: '#D4AF37',
-    fontWeight: 'bold',
-  },
-  peakDayText: {
-    color: '#D4AF37',
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginTop: 4,
-    alignSelf: 'flex-end',
-  },
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#F7F7F7',
-    paddingHorizontal: 16,
+    backgroundColor: premiumColors.canvas,
   },
-  header: {
-    flexDirection: 'row',
+  content: {
+    paddingHorizontal: premiumSpacing.screen,
+    paddingBottom: 112,
+  },
+  headerAction: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: premiumColors.surface,
     alignItems: 'center',
+    justifyContent: 'center',
+    ...premiumShadow,
+  },
+  heroCard: {
+    backgroundColor: premiumColors.surface,
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+    ...premiumShadow,
+  },
+  heroTop: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 24,
+    alignItems: 'center',
     marginBottom: 16,
   },
-  logo: {
-    width: 60,
-    height: 60,
-    resizeMode: 'contain',
+  heroLabel: {
+    color: premiumColors.muted,
+    fontSize: 13,
+    fontWeight: '700',
   },
-  headerRight: {
-    flexDirection: 'row',
+  heroValue: {
+    color: premiumColors.ink,
+    fontSize: 34,
+    fontWeight: '800',
+    marginTop: 8,
+  },
+  heroDetail: {
+    color: premiumColors.secondary,
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+  avatarCluster: {
     alignItems: 'center',
   },
-  iconButton: {
-    backgroundColor: '#EFEFEF',
-    borderRadius: 20,
-    padding: 8,
-    marginRight: 12,
+  avatar: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: premiumColors.softPrimary,
   },
-  profileButton: {
-    position: 'relative',
-  },
-  profileAvatar: {
+  smallBubble: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#DDD',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#FFD700',
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    minWidth: 16,
+    backgroundColor: premiumColors.softSecondary,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -10,
+    borderWidth: 3,
+    borderColor: premiumColors.surface,
   },
-  badgeText: {
-    color: '#222',
-    fontWeight: 'bold',
-    fontSize: 12,
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  greeting: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#222',
-    marginBottom: 4,
+  calendarRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 18,
   },
-  subGreeting: {
-    fontSize: 15,
-    color: '#888',
-    marginBottom: 18,
-  },
-  section: {
-    backgroundColor: '#fff',
+  datePill: {
+    width: 54,
+    height: 70,
     borderRadius: 18,
-    padding: 16,
-    marginBottom: 18,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: premiumColors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+  },
+  datePillActive: {
+    backgroundColor: premiumColors.primary,
+    borderColor: premiumColors.primary,
+  },
+  dateDay: {
+    color: premiumColors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  dateNum: {
+    color: premiumColors.ink,
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 6,
+  },
+  dateActiveText: {
+    color: premiumColors.surface,
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#222',
+    color: premiumColors.ink,
+    fontSize: 20,
+    fontWeight: '800',
   },
   sectionAction: {
-    fontSize: 14,
-    color: '#888',
+    color: premiumColors.primary,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  listCard: {
+    backgroundColor: premiumColors.surface,
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+  },
+  appointmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: premiumColors.line,
+  },
+  lastRow: {
+    borderBottomWidth: 0,
+  },
+  customerAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: premiumColors.softPrimary,
+  },
+  appointmentText: {
+    flex: 1,
     marginLeft: 12,
   },
-  cardList: {
-    gap: 12,
+  customerName: {
+    color: premiumColors.ink,
+    fontSize: 14,
+    fontWeight: '800',
   },
-  appointmentCard: {
-    backgroundColor: '#23232A',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-  },
-  cardIcon: {
-    marginRight: 8,
-  },
-  time: {
-    color: '#FFD700',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  id: {
-    color: '#aaa',
+  customerService: {
+    color: premiumColors.muted,
     fontSize: 12,
-    marginTop: 2,
-  },
-  name: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 15,
-    marginTop: 8,
-  },
-  service: {
-    color: '#aaa',
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  duration: {
-    color: '#aaa',
-    fontSize: 13,
-    marginRight: 4,
-  },
-  dot: {
-    color: '#aaa',
-    fontSize: 13,
-    marginHorizontal: 2,
+    marginTop: 3,
   },
   statusBadge: {
-    backgroundColor: '#D4AF37',
-    borderRadius: 8,
+    backgroundColor: premiumColors.softPrimary,
+    borderRadius: 10,
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginLeft: 8,
+    paddingVertical: 4,
+  },
+  statusSuccess: {
+    backgroundColor: premiumColors.softSecondary,
   },
   statusText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
+    color: premiumColors.primary,
+    fontSize: 10,
+    fontWeight: '800',
   },
-  today: {
-    color: '#aaa',
-    fontSize: 13,
+  statusSuccessText: {
+    color: premiumColors.secondary,
+  },
+  time: {
+    color: premiumColors.muted,
+    fontSize: 11,
+    fontWeight: '700',
     marginLeft: 8,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginLeft: 8,
-    backgroundColor: '#444',
-  },
-  completedRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: 12,
-    marginTop: 8,
-  },
-  completedCount: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#222',
-    marginRight: 8,
-  },
-  completedLabel: {
-    fontSize: 15,
-    color: '#888',
-    marginBottom: 3,
-  },
-  barChartRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    marginBottom: 8,
-    height: 80,
-  },
-  barItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  bar: {
-    width: 16,
-    backgroundColor: '#FFD700',
-    borderRadius: 6,
-    marginBottom: 4,
-  },
-  barLabel: {
-    fontSize: 12,
-    color: '#888',
-  },
-  completedCardsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    gap: 8,
-  },
-  completedCard: {
-    backgroundColor: '#23232A',
-    borderRadius: 14,
-    padding: 12,
-    flex: 1,
-    marginHorizontal: 2,
-    minWidth: 100,
-    alignItems: 'flex-start',
   },
 });
 

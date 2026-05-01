@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { premiumColors } from '../../shared/theme/premiumTheme';
 import AdminDashboard from '../../screens/admin/AdminDashboard';
 import BarbersAdmin from '../../screens/admin/BarbersAdmin';
 import UsersAdmin from '../../screens/admin/UsersAdmin';
@@ -11,26 +12,26 @@ import AdminProfile from '../../screens/admin/AdminProfile';
 const Tab = createBottomTabNavigator();
 
 const renderIcon = (icon: string, label: string, focused: boolean) => (
-  <View style={{ alignItems: "center", marginTop: 10 }}>
+  <View style={{ alignItems: "center", marginTop: 8 }}>
     {focused && (
       <View
         style={{
-          marginTop: -6,
-          height: 4,
-          width: 50,
-          backgroundColor: "#D96D05",
-          borderBottomLeftRadius: 10,
-          borderBottomRightRadius: 10,
+          width: 38,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: premiumColors.softPrimary,
+          position: 'absolute',
+          top: -3,
           zIndex: 2,
           ...Platform.select({
             android: {
               elevation: 2,
             },
             ios: {
-              shadowColor: "#ef7d12e0",
-              shadowOffset: { width: 1, height: 4 },
-              shadowOpacity: 1,
-              shadowRadius: 4,
+              shadowColor: premiumColors.primary,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.18,
+              shadowRadius: 12,
             },
           }),
         }}
@@ -38,15 +39,16 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
     )}
     <Icon
       name={icon}
-      size={24}
-      color={focused ? "#000" : "#B0B0B0"}
+      size={21}
+      color={focused ? premiumColors.primary : "#FFFFFF"}
+      style={{ zIndex: 3 }}
     />
     <Text
       style={{
-        fontSize: 12,
-        marginTop: 4,
-        color: focused ? "#000" : "#B0B0B0",
-        fontWeight: focused ? "600" : "400",
+        fontSize: 11,
+        marginTop: 8,
+        color: focused ? "#FFFFFF" : "#D8D7DD",
+        fontWeight: focused ? "800" : "600",
         textAlign: "center",
         width: 100,
       }}
@@ -64,9 +66,17 @@ const AdminBottomTabs = () => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          height: 70,
-          backgroundColor: '#fff',
-          elevation: 15,
+          height: 76,
+          marginHorizontal: 16,
+          marginBottom: 12,
+          borderRadius: 28,
+          position: 'absolute',
+          backgroundColor: premiumColors.nav,
+          borderTopWidth: 0,
+          elevation: 18,
+          shadowColor: '#20232A',
+          shadowOpacity: 0.16,
+          shadowRadius: 24,
         },
       }}
     >
@@ -99,7 +109,7 @@ const AdminBottomTabs = () => {
         component={AdminProfile}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('user', 'Adminprofile', focused),
+            renderIcon('user', 'Profile', focused),
         }}
       />
     </Tab.Navigator>

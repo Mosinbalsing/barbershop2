@@ -17,6 +17,7 @@ import { fetchApi } from '../../../Api/http_services';
 import { apiPath } from '../../../environment/environment_urls';
 import { getData, removeData, storeData } from '../../../helper/storage';
 import Loader from '../../../shared/components/Loader';
+import { premiumColors, premiumShadow } from '../../../shared/theme/premiumTheme';
 
 /* ================= TYPES ================= */
 
@@ -42,6 +43,8 @@ type RootStackParamList = {
   VolunteerTabs: undefined;
   PhoneNoS: undefined;
   RegisterScreen: undefined;
+  barber: undefined;
+  forgetPass: undefined;
 };
 
 /* ================= COMPONENT ================= */
@@ -152,13 +155,17 @@ export default function LoginScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Login</Text>
+      <View style={styles.brandCard}>
+        <Text style={styles.kicker}>Barbershop admin</Text>
+        <Text style={styles.header}>Login</Text>
+        <Text style={styles.subHeader}>Manage bookings, services, and customers with a polished daily workflow.</Text>
+      </View>
 
       <Text style={styles.label}>Mobile Number</Text>
       <TextInput
         style={[styles.input, { color: 'black' }]}
         placeholder="Enter your mobile number"
-        placeholderTextColor="gray"
+        placeholderTextColor={premiumColors.muted}
         keyboardType="numeric"
         value={loginData.mobile_no}
         onChangeText={(text: string) =>
@@ -176,7 +183,7 @@ export default function LoginScreen() {
         <TextInput
           style={[styles.passInput, { color: 'black' }]}
           secureTextEntry={!passwordVisible}
-          placeholderTextColor="gray"
+          placeholderTextColor={premiumColors.muted}
           placeholder="Enter your password"
           value={loginData.password}
           onChangeText={(text: string) =>
@@ -187,7 +194,7 @@ export default function LoginScreen() {
           <Icon
             name={passwordVisible ? 'eye' : 'eye-off'}
             size={22}
-            color="#555"
+            color={premiumColors.primary}
           />
         </TouchableOpacity>
       </View>
@@ -200,7 +207,7 @@ export default function LoginScreen() {
           <Icon
             name={rememberMe ? 'checkbox-outline' : 'square-outline'}
             size={20}
-            color="#F08000"
+          color={premiumColors.primary}
           />
           <Text style={styles.link}>Remember Me</Text>
         </TouchableOpacity>
@@ -232,48 +239,69 @@ const styles = StyleSheet.create({
   container: {
     padding: 25,
     paddingBottom: 20,
-    backgroundColor: '#fff',
+    backgroundColor: premiumColors.canvas,
     flexGrow: 1,
   },
+  brandCard: {
+    backgroundColor: premiumColors.surface,
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+    ...premiumShadow,
+  },
+  kicker: {
+    color: premiumColors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
   header: {
-    fontSize: 28,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#0F2C4A',
+    fontSize: 34,
+    fontWeight: '900',
+    marginBottom: 8,
+    color: premiumColors.ink,
+  },
+  subHeader: {
+    color: premiumColors.muted,
+    fontSize: 14,
+    lineHeight: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 5,
-    color: '#333',
+    color: premiumColors.ink,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#F08000',
+    borderColor: premiumColors.line,
     padding: 12,
-    borderRadius: 6,
+    borderRadius: 14,
     marginBottom: 15,
-    backgroundColor: '#fff',
+    backgroundColor: premiumColors.surface,
   },
   passContainer: {
     borderWidth: 1,
-    borderColor: '#F08000',
-    borderRadius: 6,
+    borderColor: premiumColors.line,
+    borderRadius: 14,
     paddingHorizontal: 12,
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: premiumColors.surface,
   },
   passInput: {
     flex: 1,
     marginRight: 10,
   },
   button: {
-    backgroundColor: '#F08000',
+    backgroundColor: premiumColors.primary,
     paddingVertical: 14,
-    borderRadius: 30,
+    borderRadius: 18,
     alignItems: 'center',
     marginVertical: 20,
   },
@@ -284,11 +312,11 @@ const styles = StyleSheet.create({
   },
   footer: {
     textAlign: 'center',
-    color: '#444',
+    color: premiumColors.muted,
   },
   link: {
-    color: '#F08000',
-    fontWeight: '600',
+    color: premiumColors.primary,
+    fontWeight: '900',
   },
   rememberRow: {
     flexDirection: 'row',

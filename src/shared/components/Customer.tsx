@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, ScrollView, TouchableOpacity } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { getData } from '../../helper/storage';
+import { premiumColors } from '../theme/premiumTheme';
 
 const AdminStatus = ({ data }: any) => {
   const [role, setRole] = useState()
@@ -48,7 +49,7 @@ const AdminStatus = ({ data }: any) => {
                 <Image source={item.image} style={styles.profileImage} />
               ) : (
                 <LinearGradient
-                  colors={["#F8A12D", "#DD7D0F"]}
+                  colors={[premiumColors.primary, premiumColors.secondary]}
                   style={styles.circle}
                 >
                   <Text style={styles.initials}>{item.initials}</Text>
@@ -73,7 +74,6 @@ export default AdminStatus;
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    width: "100%",
     marginTop: 10
   },
 
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   countBox: {
-    backgroundColor: "#fff",
+    backgroundColor: premiumColors.surface,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   initials: {
-    color: "#fff",
+    color: premiumColors.surface,
     fontSize: 28,
     fontWeight: "800",
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontWeight: "600",
     fontSize: 14,
-    color: "#000",
+    color: premiumColors.ink,
     // borderWidth: 1,
     // width:70,
     textAlign: "center"

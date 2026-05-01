@@ -5,6 +5,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { fetchApi } from '../../../Api/http_services';
 import { apiPath } from '../../../environment/environment_urls';
 import Loader from '../../../shared/components/Loader';
+import { premiumColors, premiumShadow } from '../../../shared/theme/premiumTheme';
 
 
 const ForgetPass = () => {
@@ -105,11 +106,15 @@ const ForgetPass = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fff' }}
+      style={{ flex: 1, backgroundColor: premiumColors.canvas }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.container}>
-        <Text style={styles.header}>Reset Password</Text>
+        <View style={styles.brandCard}>
+          <Text style={styles.kicker}>Account recovery</Text>
+          <Text style={styles.header}>Reset Password</Text>
+          <Text style={styles.subHeader}>Verify your phone number and create a new secure password.</Text>
+        </View>
 
         <View style={styles.inputSection}>
           {step === 1 && (
@@ -118,7 +123,7 @@ const ForgetPass = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your mobile number"
-                placeholderTextColor="gray"
+                placeholderTextColor={premiumColors.muted}
                 keyboardType="numeric"
                 value={mobile}
                 maxLength={10}
@@ -132,7 +137,7 @@ const ForgetPass = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter OTP"
-                placeholderTextColor="gray"
+                placeholderTextColor={premiumColors.muted}
                 keyboardType="numeric"
                 value={otp}
                 onChangeText={setOtp}
@@ -145,7 +150,7 @@ const ForgetPass = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter new password"
-                placeholderTextColor="gray"
+                placeholderTextColor={premiumColors.muted}
                 secureTextEntry
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -154,7 +159,7 @@ const ForgetPass = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Confirm new password"
-                placeholderTextColor="gray"
+                placeholderTextColor={premiumColors.muted}
                 secureTextEntry
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -191,16 +196,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 25,
-    backgroundColor: '#fff',
+    backgroundColor: premiumColors.canvas,
     justifyContent: 'space-between',
   },
   header: {
     fontSize: 28,
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#0F2C4A',
-    marginTop: 20,
+    marginBottom: 8,
+    color: premiumColors.ink,
+  },
+  brandCard: {
+    backgroundColor: premiumColors.surface,
+    borderRadius: 24,
+    padding: 22,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+    ...premiumShadow,
+  },
+  kicker: {
+    color: premiumColors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  subHeader: {
+    color: premiumColors.muted,
+    fontSize: 14,
+    lineHeight: 20,
   },
   inputSection: {
     flex: 1,
@@ -214,21 +238,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 5,
-    color: '#333',
+    color: premiumColors.ink,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#F08000',
+    borderColor: premiumColors.line,
     padding: 12,
-    borderRadius: 6,
+    borderRadius: 14,
     marginBottom: 15,
-    backgroundColor: '#fff',
+    backgroundColor: premiumColors.surface,
     color: 'black',
   },
   button: {
-    backgroundColor: '#F08000',
+    backgroundColor: premiumColors.primary,
     paddingVertical: 14,
-    borderRadius: 30,
+    borderRadius: 18,
     alignItems: 'center',
     marginVertical: 10,
   },
