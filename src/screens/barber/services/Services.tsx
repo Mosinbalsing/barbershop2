@@ -1,33 +1,229 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import {
+  FlatList,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { PremiumHeader } from '../../../shared/components/PremiumScaffold';
-import { premiumColors, premiumShadow, premiumSpacing } from '../../../shared/theme/premiumTheme';
+import {
+  premiumShadow,
+  premiumSpacing,
+  usePremiumTheme,
+} from '../../../shared/theme/premiumTheme';
 
-const categories = ['All', 'Haircut', 'Beard', 'Facial'];
+const categories = [
+  // { id: 'all', name: 'All', shortName: 'All', icon: 'th-large' },
+  {
+    id: 'hair',
+    name: 'Hair Cutting & Styling',
+    shortName: 'Haircut',
+    icon: 'scissors',
+  },
+  {
+    id: 'grooming',
+    name: 'Grooming & Shaving',
+    shortName: 'Shaving',
+    icon: 'user',
+  },
+  {
+    id: 'treatment',
+    name: 'Hair Treatments & Color',
+    shortName: 'Treatment',
+    icon: 'magic',
+  },
+  {
+    id: 'skin',
+    name: 'Skin & Face Care',
+    shortName: 'Face Care',
+    icon: 'star',
+  },
+  {
+    id: 'massage',
+    name: 'Massage Therapy',
+    shortName: 'Massage',
+    icon: 'hand-paper-o',
+  },
+];
+
 const initialServices = [
-  { id: '1', name: 'Classic Haircut', price: 250, description: 'Clean shaping with premium finishing.', category: 'Haircut', tag: 'Popular' },
-  { id: '2', name: 'Beard Trim', price: 150, description: 'Line-up, shape, and beard conditioning.', category: 'Beard', tag: 'Trending' },
-  { id: '3', name: 'Facial Cleanse', price: 400, description: 'Deep cleanse with skin preparation.', category: 'Facial', tag: 'Premium' },
+  {
+    id: '1',
+    name: 'Normal Haircut',
+    price: '120',
+    duration: '30 min',
+    description: 'Professional cuts tailored to your preference.',
+    category: 'hair',
+    tone: '#E9F7F2',
+    icon: 'scissors',
+  },
+  {
+    id: '2',
+    name: 'Style Haircut',
+    price: '150',
+    duration: '30 min',
+    description: 'Professional cuts tailored to your preference.',
+    category: 'hair',
+    tone: '#F7EBF1',
+    icon: 'scissors',
+  },
+  {
+    id: '3',
+    name: 'Normal Shave',
+    price: '80',
+    duration: '30 min',
+    description: 'Classic and precision shaving services.',
+    category: 'grooming',
+    tone: '#EEF1FF',
+    icon: 'user',
+  },
+  {
+    id: '4',
+    name: 'Style Shave',
+    price: '100',
+    duration: '30 min',
+    description: 'Classic and precision shaving services.',
+    category: 'grooming',
+    tone: '#FFF3E3',
+    icon: 'user',
+  },
+  {
+    id: '5',
+    name: 'Hair Color',
+    price: '150 - 550',
+    duration: '10 min',
+    description: 'Enhance your hair health and look.',
+    category: 'treatment',
+    tone: '#F0ECFF',
+    icon: 'magic',
+  },
+  {
+    id: '6',
+    name: 'Hair Spa',
+    price: '550',
+    duration: '20 min',
+    description: 'Enhance your hair health and look.',
+    category: 'treatment',
+    tone: '#EAFBF6',
+    icon: 'tint',
+  },
+  {
+    id: '7',
+    name: 'Clean Up',
+    price: '350',
+    duration: '20 min',
+    description: 'Deep cleaning and brightening treatments.',
+    category: 'skin',
+    tone: '#FFF0F0',
+    icon: 'star',
+  },
+  {
+    id: '8',
+    name: 'D-Tan (Detem)',
+    price: '350',
+    duration: '20 min',
+    description: 'Deep cleaning and brightening treatments.',
+    category: 'skin',
+    tone: '#FFF7D9',
+    icon: 'sun-o',
+  },
+  {
+    id: '9',
+    name: 'Bleach',
+    price: '350',
+    duration: '20 min',
+    description: 'Deep cleaning and brightening treatments.',
+    category: 'skin',
+    tone: '#EFF8FF',
+    icon: 'asterisk',
+  },
+  {
+    id: '10',
+    name: 'Facial (Premium Range)',
+    price: '550 - 3,500',
+    duration: '1 hr',
+    description: 'Deep cleaning and brightening treatments.',
+    category: 'skin',
+    tone: '#F5EEFF',
+    icon: 'diamond',
+  },
+  {
+    id: '11',
+    name: 'Normal Face Massage',
+    price: '150',
+    duration: '10 min',
+    description: 'Relaxation and rejuvenation.',
+    category: 'massage',
+    tone: '#E9F7F2',
+    icon: 'hand-paper-o',
+  },
+  {
+    id: '12',
+    name: 'Special Massage',
+    price: '250',
+    duration: '1 hr',
+    description: 'Relaxation and rejuvenation.',
+    category: 'massage',
+    tone: '#FDF0E7',
+    icon: 'hand-paper-o',
+  },
 ];
 
 const Services = () => {
+  const serviceListRef = useRef<FlatList<(typeof initialServices)[number]>>(null);
+  const { colors: premiumColors } = usePremiumTheme();
+  const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const [services, setServices] = useState(initialServices);
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState('hair');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', price: '', description: '', category: 'Haircut' });
+  const [form, setForm] = useState({
+    name: '',
+    price: '',
+    duration: '',
+    description: '',
+    category: 'hair',
+  });
 
-  const filtered = useMemo(() => services.filter(service =>
-    (category === 'All' || service.category === category) &&
-    service.name.toLowerCase().includes(search.toLowerCase()),
-  ), [category, search, services]);
+  const filtered = useMemo(
+    () =>
+      services.filter(
+        service =>
+          (category === 'all' || service.category === category) &&
+          service.name.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [category, search, services],
+  );
 
   const saveService = () => {
     if (!form.name.trim() || !form.price.trim()) return;
-    setServices(prev => [{ ...form, id: Date.now().toString(), price: Number(form.price), tag: 'New' }, ...prev]);
-    setForm({ name: '', price: '', description: '', category: 'Haircut' });
+    setServices(prev => [
+      {
+        ...form,
+        id: Date.now().toString(),
+        duration: form.duration.trim() || '30 min',
+        tone: '#F1ECFF',
+        icon: 'scissors',
+      },
+      ...prev,
+    ]);
+    setForm({
+      name: '',
+      price: '',
+      duration: '',
+      description: '',
+      category: 'hair',
+    });
     setModalOpen(false);
+  };
+
+  const selectCategory = (nextCategory: string) => {
+    setCategory(nextCategory);
+    serviceListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   return (
@@ -35,74 +231,188 @@ const Services = () => {
       <PremiumHeader
         eyebrow="Catalog"
         title="Services"
-        subtitle="Keep your menu clear, priced, and ready to book."
+        subtitle="Manage salon plans, prices, and booking time."
         right={
-          <TouchableOpacity style={styles.addCircle} onPress={() => setModalOpen(true)}>
+          <TouchableOpacity
+            style={styles.addCircle}
+            onPress={() => setModalOpen(true)}
+          >
             <Icon name="plus" size={18} color={premiumColors.surface} />
           </TouchableOpacity>
         }
       />
 
       <View style={styles.searchBox}>
-        <Icon name="search" size={16} color={premiumColors.muted} />
+        <Icon name="search" size={18} color={premiumColors.ink} />
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Search services"
+          placeholder="Search haircut, facial, massage and more"
           placeholderTextColor={premiumColors.muted}
           style={styles.searchInput}
         />
       </View>
 
-      <View style={styles.categoryRow}>
-        {categories.map(item => (
-          <TouchableOpacity key={item} style={[styles.categoryPill, category === item && styles.categoryPillActive]} onPress={() => setCategory(item)}>
-            <Text style={[styles.categoryText, category === item && styles.categoryTextActive]}>{item}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <FlatList
+        horizontal
+        data={categories}
+        style={styles.categoryNav}
+        keyExtractor={item => item.id}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryList}
+        renderItem={({ item }) => {
+          const active = category === item.id;
+
+          return (
+            <TouchableOpacity
+              style={styles.categoryItem}
+              onPress={() => selectCategory(item.id)}
+            >
+              <View
+                style={[
+                  styles.categoryIconWrap,
+                  active && styles.categoryIconActive,
+                ]}
+              >
+                <Icon
+                  name={item.icon}
+                  size={21}
+                  color={active ? premiumColors.ink : premiumColors.nav}
+                />
+              </View>
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.categoryLabel,
+                  active && styles.categoryLabelActive,
+                ]}
+              >
+                {item.shortName}
+              </Text>
+              {active && <View style={styles.activeBar} />}
+            </TouchableOpacity>
+          );
+        }}
+      />
 
       <FlatList
+        ref={serviceListRef}
         data={filtered}
+        style={styles.serviceList}
         keyExtractor={item => item.id}
+        numColumns={2}
+        key="service-grid"
+        columnWrapperStyle={styles.gridRow}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <View style={styles.iconBox}>
-              <Icon name="scissors" size={20} color={premiumColors.primary} />
+            <View style={[styles.visualBox, { backgroundColor: item.tone }]}>
+              <View style={styles.serviceIconCircle}>
+                <Icon name={item.icon} size={28} color={premiumColors.ink} />
+              </View>
+              <Text style={styles.visualText} numberOfLines={2}>
+                {item.name}
+              </Text>
             </View>
             <View style={styles.cardBody}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>{item.name}</Text>
+              <Text style={styles.cardTitle} numberOfLines={2}>
+                {item.name}
+              </Text>
+              <Text style={styles.description} numberOfLines={2}>
+                {item.description}
+              </Text>
+              <View style={styles.cardMeta}>
                 <Text style={styles.price}>₹{item.price}</Text>
-              </View>
-              <Text style={styles.description}>{item.description}</Text>
-              <View style={styles.cardFooter}>
-                <View style={styles.softPill}><Text style={styles.softPillText}>{item.category}</Text></View>
-                <View style={styles.mintPill}><Text style={styles.mintPillText}>{item.tag}</Text></View>
+                <View style={styles.timePill}>
+                  <Icon name="clock-o" size={11} color={premiumColors.muted} />
+                  <Text style={styles.timeText}>{item.duration}</Text>
+                </View>
               </View>
             </View>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No services match your search.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.empty}>No services match your search.</Text>
+        }
       />
 
-      <Modal visible={modalOpen} transparent animationType="slide" onRequestClose={() => setModalOpen(false)}>
+      <Modal
+        visible={modalOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalOpen(false)}
+      >
         <View style={styles.overlay}>
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
             <Text style={styles.sheetTitle}>Add Service</Text>
-            <TextInput placeholder="Service name" placeholderTextColor={premiumColors.muted} style={styles.input} value={form.name} onChangeText={name => setForm(prev => ({ ...prev, name }))} />
-            <TextInput placeholder="Price" placeholderTextColor={premiumColors.muted} style={styles.input} keyboardType="numeric" value={form.price} onChangeText={price => setForm(prev => ({ ...prev, price: price.replace(/[^0-9]/g, '') }))} />
-            <TextInput placeholder="Description" placeholderTextColor={premiumColors.muted} style={styles.input} value={form.description} onChangeText={description => setForm(prev => ({ ...prev, description }))} />
+            <TextInput
+              placeholder="Service name"
+              placeholderTextColor={premiumColors.muted}
+              style={styles.input}
+              value={form.name}
+              onChangeText={name => setForm(prev => ({ ...prev, name }))}
+            />
+            <TextInput
+              placeholder="Price"
+              placeholderTextColor={premiumColors.muted}
+              style={styles.input}
+              keyboardType="numeric"
+              value={form.price}
+              onChangeText={price =>
+                setForm(prev => ({
+                  ...prev,
+                  price: price.replace(/[^0-9]/g, ''),
+                }))
+              }
+            />
+            <TextInput
+              placeholder="Duration eg. 30 min"
+              placeholderTextColor={premiumColors.muted}
+              style={styles.input}
+              value={form.duration}
+              onChangeText={duration =>
+                setForm(prev => ({ ...prev, duration }))
+              }
+            />
+            <TextInput
+              placeholder="Description"
+              placeholderTextColor={premiumColors.muted}
+              style={styles.input}
+              value={form.description}
+              onChangeText={description =>
+                setForm(prev => ({ ...prev, description }))
+              }
+            />
             <View style={styles.categoryRowCompact}>
-              {categories.filter(item => item !== 'All').map(item => (
-                <TouchableOpacity key={item} style={[styles.categoryPill, form.category === item && styles.categoryPillActive]} onPress={() => setForm(prev => ({ ...prev, category: item }))}>
-                  <Text style={[styles.categoryText, form.category === item && styles.categoryTextActive]}>{item}</Text>
-                </TouchableOpacity>
-              ))}
+              {categories
+                .filter(item => item.id !== 'all')
+                .map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.categoryPill,
+                      form.category === item.id && styles.categoryPillActive,
+                    ]}
+                    onPress={() =>
+                      setForm(prev => ({ ...prev, category: item.id }))
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        form.category === item.id && styles.categoryTextActive,
+                      ]}
+                    >
+                      {item.shortName}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
             </View>
-            <TouchableOpacity style={styles.primaryButton} onPress={saveService}>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={saveService}
+            >
               <Text style={styles.primaryButtonText}>Save Service</Text>
             </TouchableOpacity>
           </View>
@@ -112,38 +422,216 @@ const Services = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors']) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: premiumColors.canvas },
-  addCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: premiumColors.primary, alignItems: 'center', justifyContent: 'center', ...premiumShadow },
-  searchBox: { flexDirection: 'row', alignItems: 'center', marginHorizontal: premiumSpacing.screen, backgroundColor: premiumColors.surface, borderRadius: 16, borderWidth: 1, borderColor: premiumColors.line, paddingHorizontal: 14 },
-  searchInput: { flex: 1, color: premiumColors.ink, fontSize: 15, paddingVertical: 12, marginLeft: 8 },
-  categoryRow: { flexDirection: 'row', paddingHorizontal: premiumSpacing.screen, gap: 8, marginTop: 14, marginBottom: 8 },
-  categoryRowCompact: { flexDirection: 'row', gap: 8, marginTop: 4, marginBottom: 12 },
-  categoryPill: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 14, backgroundColor: premiumColors.surface, borderWidth: 1, borderColor: premiumColors.line },
-  categoryPillActive: { backgroundColor: premiumColors.primary, borderColor: premiumColors.primary },
+  addCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: premiumColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...premiumShadow,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: premiumSpacing.screen,
+    backgroundColor: premiumColors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+    paddingHorizontal: 16,
+    minHeight: 56,
+    ...premiumShadow,
+  },
+  searchInput: {
+    flex: 1,
+    color: premiumColors.ink,
+    fontSize: 15,
+    paddingVertical: 13,
+    marginLeft: 10,
+  },
+  categoryNav: {
+    flexGrow: 0,
+    height: 88,
+  },
+  categoryList: {
+    paddingHorizontal: 8,
+    paddingTop: 14,
+    paddingBottom: 8,
+  },
+  categoryItem: {
+    width: 92,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  categoryIconWrap: {
+    width: 42,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryIconActive: { backgroundColor: '#FFF3CD', borderRadius: 12 },
+  categoryLabel: {
+    color: premiumColors.nav,
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 3,
+    maxWidth: 84,
+  },
+  categoryLabelActive: { color: premiumColors.ink, fontWeight: '900' },
+  activeBar: {
+    width: 34,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: premiumColors.ink,
+    marginTop: 8,
+  },
+  categoryRowCompact: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  categoryPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 14,
+    backgroundColor: premiumColors.surface,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+  },
+  categoryPillActive: {
+    backgroundColor: premiumColors.primary,
+    borderColor: premiumColors.primary,
+  },
   categoryText: { color: premiumColors.muted, fontWeight: '800', fontSize: 13 },
   categoryTextActive: { color: premiumColors.surface },
-  list: { padding: premiumSpacing.screen, paddingTop: 6, paddingBottom: 112 },
-  card: { flexDirection: 'row', backgroundColor: premiumColors.surface, borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: premiumColors.line, ...premiumShadow },
-  iconBox: { width: 46, height: 46, borderRadius: 16, backgroundColor: premiumColors.softPrimary, alignItems: 'center', justifyContent: 'center' },
-  cardBody: { flex: 1, marginLeft: 13 },
-  cardTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardTitle: { flex: 1, color: premiumColors.ink, fontSize: 16, fontWeight: '900', paddingRight: 8 },
-  price: { color: premiumColors.primary, fontSize: 17, fontWeight: '900' },
-  description: { color: premiumColors.muted, fontSize: 13, marginTop: 6, lineHeight: 18 },
-  cardFooter: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  softPill: { backgroundColor: premiumColors.softPrimary, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 5 },
-  softPillText: { color: premiumColors.primary, fontWeight: '900', fontSize: 11 },
-  mintPill: { backgroundColor: premiumColors.softSecondary, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 5 },
-  mintPillText: { color: premiumColors.secondary, fontWeight: '900', fontSize: 11 },
-  empty: { color: premiumColors.muted, textAlign: 'center', marginTop: 40, fontWeight: '700' },
-  overlay: { flex: 1, backgroundColor: 'rgba(32,35,42,0.35)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: premiumColors.surface, borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: 22 },
-  sheetHandle: { width: 44, height: 5, borderRadius: 3, backgroundColor: premiumColors.line, alignSelf: 'center', marginBottom: 18 },
-  sheetTitle: { color: premiumColors.ink, fontSize: 22, fontWeight: '900', marginBottom: 16 },
-  input: { backgroundColor: premiumColors.canvas, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, color: premiumColors.ink, marginBottom: 10, borderWidth: 1, borderColor: premiumColors.line },
-  primaryButton: { backgroundColor: premiumColors.primary, borderRadius: 16, alignItems: 'center', paddingVertical: 14, marginTop: 4 },
-  primaryButtonText: { color: premiumColors.surface, fontSize: 16, fontWeight: '900' },
+  list: {
+    paddingHorizontal: premiumSpacing.screen,
+    paddingTop: 0,
+    paddingBottom: 112,
+  },
+  serviceList: { flex: 1 },
+  gridRow: { gap: 14 },
+  card: {
+    flex: 1,
+    backgroundColor: premiumColors.surface,
+    borderRadius: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+    overflow: 'hidden',
+    ...premiumShadow,
+  },
+  visualBox: {
+    height: 126,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+  },
+  serviceIconCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: premiumColors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    ...premiumShadow,
+  },
+  visualText: {
+    color: premiumColors.ink,
+    fontSize: 15,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  cardBody: { minHeight: 128, padding: 12 },
+  cardTitle: {
+    color: premiumColors.ink,
+    fontSize: 15,
+    fontWeight: '900',
+    lineHeight: 19,
+  },
+  price: { color: premiumColors.primary, fontSize: 16, fontWeight: '900' },
+  description: {
+    color: premiumColors.muted,
+    fontSize: 12,
+    marginTop: 6,
+    lineHeight: 16,
+  },
+  cardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 'auto',
+    gap: 8,
+  },
+  timePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: premiumColors.canvas,
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+    gap: 4,
+  },
+  timeText: { color: premiumColors.muted, fontSize: 11, fontWeight: '800' },
+  empty: {
+    color: premiumColors.muted,
+    textAlign: 'center',
+    marginTop: 40,
+    fontWeight: '700',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(32,35,42,0.35)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: premiumColors.surface,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    padding: 22,
+  },
+  sheetHandle: {
+    width: 44,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: premiumColors.line,
+    alignSelf: 'center',
+    marginBottom: 18,
+  },
+  sheetTitle: {
+    color: premiumColors.ink,
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 16,
+  },
+  input: {
+    backgroundColor: premiumColors.canvas,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: premiumColors.ink,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: premiumColors.line,
+  },
+  primaryButton: {
+    backgroundColor: premiumColors.primary,
+    borderRadius: 16,
+    alignItems: 'center',
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  primaryButtonText: {
+    color: premiumColors.surface,
+    fontSize: 16,
+    fontWeight: '900',
+  },
 });
 
 export default Services;

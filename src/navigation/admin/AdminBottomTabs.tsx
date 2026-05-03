@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { premiumColors } from '../../shared/theme/premiumTheme';
+import { usePremiumTheme } from '../../shared/theme/premiumTheme';
 import AdminDashboard from '../../screens/admin/AdminDashboard';
 import BarbersAdmin from '../../screens/admin/BarbersAdmin';
 import UsersAdmin from '../../screens/admin/UsersAdmin';
@@ -11,7 +11,7 @@ import AdminProfile from '../../screens/admin/AdminProfile';
 
 const Tab = createBottomTabNavigator();
 
-const renderIcon = (icon: string, label: string, focused: boolean) => (
+const renderIcon = (icon: string, label: string, focused: boolean, colors: ReturnType<typeof usePremiumTheme>['colors']) => (
   <View style={{ alignItems: "center", marginTop: 8 }}>
     {focused && (
       <View
@@ -19,7 +19,7 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
           width: 38,
           height: 32,
           borderRadius: 16,
-          backgroundColor: premiumColors.softPrimary,
+          backgroundColor: colors.softPrimary,
           position: 'absolute',
           top: -3,
           zIndex: 2,
@@ -28,7 +28,7 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
               elevation: 2,
             },
             ios: {
-              shadowColor: premiumColors.primary,
+              shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.18,
               shadowRadius: 12,
@@ -40,7 +40,7 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
     <Icon
       name={icon}
       size={21}
-      color={focused ? premiumColors.primary : "#FFFFFF"}
+      color={focused ? colors.primary : "#FFFFFF"}
       style={{ zIndex: 3 }}
     />
     <Text
@@ -60,6 +60,8 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
 );
 
 const AdminBottomTabs = () => {
+  const { colors } = usePremiumTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -71,7 +73,7 @@ const AdminBottomTabs = () => {
           marginBottom: 12,
           borderRadius: 28,
           position: 'absolute',
-          backgroundColor: premiumColors.nav,
+          backgroundColor: colors.nav,
           borderTopWidth: 0,
           elevation: 18,
           shadowColor: '#20232A',
@@ -85,7 +87,7 @@ const AdminBottomTabs = () => {
         component={AdminDashboard}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('home', 'Home', focused),
+            renderIcon('home', 'Home', focused, colors),
         }}
       />
       <Tab.Screen
@@ -93,7 +95,7 @@ const AdminBottomTabs = () => {
         component={BarbersAdmin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('scissors', 'Barber', focused),
+            renderIcon('scissors', 'Barber', focused, colors),
         }}
       />
       <Tab.Screen
@@ -101,7 +103,7 @@ const AdminBottomTabs = () => {
         component={UsersAdmin}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('users', 'User', focused),
+            renderIcon('users', 'User', focused, colors),
         }}
       />
       <Tab.Screen
@@ -109,7 +111,7 @@ const AdminBottomTabs = () => {
         component={AdminProfile}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('user', 'Profile', focused),
+            renderIcon('user', 'Profile', focused, colors),
         }}
       />
     </Tab.Navigator>

@@ -3,7 +3,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MetricCard, PremiumHeader } from '../../../shared/components/PremiumScaffold';
-import { premiumColors, premiumShadow, premiumSpacing } from '../../../shared/theme/premiumTheme';
+import { premiumShadow, premiumSpacing, usePremiumTheme } from '../../../shared/theme/premiumTheme';
 
 const appointments = [
   { time: '09:00 AM', name: 'Oliver Thompson', service: 'Hair & Beard Cut', status: 'Success' },
@@ -23,6 +23,8 @@ const week = [
 
 const BarberDashboard = () => {
   const navigation = useNavigation<any>();
+  const { colors: premiumColors } = usePremiumTheme();
+  const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -37,7 +39,7 @@ const BarberDashboard = () => {
         title={`${greeting}, Shoyeb`}
         subtitle="Your shop is on pace for a strong booking day."
         right={
-          <TouchableOpacity style={styles.headerAction}>
+          <TouchableOpacity style={styles.headerAction} onPress={() => navigation.navigate('Notifications')}>
             <Icon name="bell-o" size={18} color={premiumColors.primary} />
           </TouchableOpacity>
         }
@@ -100,7 +102,7 @@ const BarberDashboard = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors']) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: premiumColors.canvas,

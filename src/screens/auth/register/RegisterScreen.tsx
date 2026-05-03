@@ -78,7 +78,7 @@ export default function RegisterScreen() {
       setOtpSent(true);
       setCurrentStep(2);
       Alert.alert("Success", otpRes?.message || "OTP sent successfully");
-    } catch (error) {
+    } catch {
       setSubmitError("Failed to send OTP");
     } finally {
       setOtpLoading(false);
@@ -128,6 +128,10 @@ export default function RegisterScreen() {
     console.log("register res", reg_Res)
     if (reg_Res?.status) {
       setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        navigation.reset({ index: 0, routes: [{ name: "LoginScreen" }] });
+      }, 900);
     } else {
       setSubmitError(reg_Res?.message || "Registration Failed");
     }
@@ -355,7 +359,7 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={[styles.button, { alignSelf: 'stretch', marginTop: 10 }]}
               onPress={() => { setShowSuccess(false); 
-                // navigation.reset({ index: 0, routes: [{ name: "VolunteerTabs" }] });
+                navigation.reset({ index: 0, routes: [{ name: "LoginScreen" }] });
              }}
             >
               <Text style={styles.buttonText}>OK</Text>

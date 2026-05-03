@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { premiumColors } from '../../shared/theme/premiumTheme';
+import { usePremiumTheme } from '../../shared/theme/premiumTheme';
 
 import BarberDashboard from '../../screens/barber/dashboard/BarberDashboard';
 import Bookings from '../../screens/barber/bookings/Bookings';
@@ -14,24 +14,25 @@ import Profile from '../../screens/barber/profile/Profile';
 const Tab = createBottomTabNavigator();
 
 
-const renderIcon = (icon: string, label: string, focused: boolean) => (
-  <View style={{ alignItems: "center", marginTop: 8 }}>
+const renderIcon = (icon: string, label: string, focused: boolean, colors: ReturnType<typeof usePremiumTheme>['colors']) => (
+  <View style={{ alignItems: "center", marginTop: 5 }}>
     {focused && (
       <View
         style={{
-          width: 38,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: premiumColors.softPrimary,
+          width: 34,
+          height: 28,
+          borderBottomRightRadius: 14,
+          borderBottomLeftRadius: 14,
+          backgroundColor: colors.softPrimary,
           position: 'absolute',
-          top: -3,
+          top: -2,
           zIndex: 2,
           ...Platform.select({
             android: {
               elevation: 2,
             },
             ios: {
-              shadowColor: premiumColors.primary,
+              shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 6 },
               shadowOpacity: 0.18,
               shadowRadius: 12,
@@ -42,14 +43,14 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
     )}
     <Icon
       name={icon}
-      size={21}
-      color={focused ? premiumColors.primary : "#FFFFFF"}
+      size={19}
+      color={focused ? colors.primary : "#FFFFFF"}
       style={{ zIndex: 3 }}
     />
     <Text
       style={{
         fontSize: 11,
-        marginTop: 8,
+        marginTop: 6,
         color: focused ? "#FFFFFF" : "#D8D7DD",
         fontWeight: focused ? "800" : "600",
         textAlign: "center",
@@ -63,23 +64,30 @@ const renderIcon = (icon: string, label: string, focused: boolean) => (
 );
 
 const BarberBottomTabs = () => {
+  const { colors, mode } = usePremiumTheme();
+  const darkMode = mode === 'dark';
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          height: 76,
+          height: 50,
           marginHorizontal: 16,
-          marginBottom: 12,
-          borderRadius: 28,
+          marginBottom: 8,
+          borderRadius: 24,
           position: 'absolute',
-          backgroundColor: premiumColors.nav,
-          borderTopWidth: 0,
+          backgroundColor: colors.nav,
+          borderTopWidth: darkMode ? 1 : 0,
+          borderLeftWidth: darkMode ? 1 : 0,
+          borderRightWidth: darkMode ? 1 : 0,
+          borderBottomWidth: darkMode ? 1 : 0,
+          borderColor: darkMode ? 'rgba(255,255,255,0.42)' : 'transparent',
           elevation: 18,
-          shadowColor: '#20232A',
-          shadowOpacity: 0.16,
-          shadowRadius: 24,
+          shadowColor: darkMode ? '#FFFFFF' : '#20232A',
+          shadowOpacity: darkMode ? 0.18 : 0.16,
+          shadowRadius: darkMode ? 18 : 24,
         },
       }}
     >
@@ -88,7 +96,7 @@ const BarberBottomTabs = () => {
         component={BarberDashboard}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('home', 'Home', focused),
+            renderIcon('home', 'Home', focused, colors),
         }}
       />
       <Tab.Screen
@@ -96,7 +104,7 @@ const BarberBottomTabs = () => {
         component={Bookings}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('calendar', 'Bookings', focused),
+            renderIcon('calendar', 'Bookings', focused, colors),
         }}
       />
       <Tab.Screen
@@ -104,7 +112,7 @@ const BarberBottomTabs = () => {
         component={Services}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('briefcase', 'Services', focused),
+            renderIcon('briefcase', 'Services', focused, colors),
         }}
       />
       <Tab.Screen
@@ -112,7 +120,7 @@ const BarberBottomTabs = () => {
         component={Setting}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('cog', 'Setting', focused),
+            renderIcon('cog', 'Setting', focused, colors),
         }}
       />
       <Tab.Screen
@@ -120,7 +128,7 @@ const BarberBottomTabs = () => {
         component={Profile}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('user', 'Profile', focused),
+            renderIcon('user', 'Profile', focused, colors),
         }}
       />
     </Tab.Navigator>

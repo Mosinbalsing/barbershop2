@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { premiumColors, premiumSpacing } from '../theme/premiumTheme';
+import { premiumSpacing, usePremiumTheme } from '../theme/premiumTheme';
 
 type PremiumHeaderProps = {
   eyebrow?: string;
@@ -9,16 +9,21 @@ type PremiumHeaderProps = {
   right?: React.ReactNode;
 };
 
-export const PremiumHeader = ({ eyebrow, title, subtitle, right }: PremiumHeaderProps) => (
-  <View style={styles.header}>
-    <View style={styles.headerText}>
-      {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-      <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+export const PremiumHeader = ({ eyebrow, title, subtitle, right }: PremiumHeaderProps) => {
+  const { colors } = usePremiumTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  return (
+    <View style={styles.header}>
+      <View style={styles.headerText}>
+        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
+        <Text style={styles.title}>{title}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      </View>
+      {right}
     </View>
-    {right}
-  </View>
-);
+  );
+};
 
 type MetricCardProps = {
   label: string;
@@ -27,15 +32,20 @@ type MetricCardProps = {
   tone?: 'primary' | 'secondary';
 };
 
-export const MetricCard = ({ label, value, detail, tone = 'primary' }: MetricCardProps) => (
-  <View style={[styles.metricCard, tone === 'secondary' && styles.metricCardSecondary]}>
-    <Text style={styles.metricLabel}>{label}</Text>
-    <Text style={styles.metricValue}>{value}</Text>
-    {detail ? <Text style={styles.metricDetail}>{detail}</Text> : null}
-  </View>
-);
+export const MetricCard = ({ label, value, detail, tone = 'primary' }: MetricCardProps) => {
+  const { colors } = usePremiumTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
-const styles = StyleSheet.create({
+  return (
+    <View style={[styles.metricCard, tone === 'secondary' && styles.metricCardSecondary]}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+      {detail ? <Text style={styles.metricDetail}>{detail}</Text> : null}
+    </View>
+  );
+};
+
+const createStyles = (colors: typeof import('../theme/premiumTheme').premiumColors) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -49,7 +59,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   eyebrow: {
-    color: premiumColors.primary,
+    color: colors.primary,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0,
@@ -57,12 +67,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
-    color: premiumColors.ink,
+    color: colors.ink,
     fontSize: 28,
     fontWeight: '800',
   },
   subtitle: {
-    color: premiumColors.muted,
+    color: colors.muted,
     fontSize: 14,
     marginTop: 5,
   },
@@ -70,28 +80,28 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 116,
     borderRadius: premiumSpacing.cardRadius,
-    backgroundColor: premiumColors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: premiumColors.line,
+    borderColor: colors.line,
     padding: 16,
   },
   metricCardSecondary: {
-    backgroundColor: premiumColors.softSecondary,
-    borderColor: premiumColors.secondary,
+    backgroundColor: colors.softSecondary,
+    borderColor: colors.secondary,
   },
   metricLabel: {
-    color: premiumColors.muted,
+    color: colors.muted,
     fontSize: 12,
     fontWeight: '700',
   },
   metricValue: {
-    color: premiumColors.ink,
+    color: colors.ink,
     fontSize: 26,
     fontWeight: '800',
     marginTop: 12,
   },
   metricDetail: {
-    color: premiumColors.primary,
+    color: colors.primary,
     fontSize: 12,
     fontWeight: '700',
     marginTop: 8,

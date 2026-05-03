@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   Image,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,8 +9,9 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native';
 import { PremiumHeader } from '../../../shared/components/PremiumScaffold';
-import { premiumColors, premiumShadow, premiumSpacing } from '../../../shared/theme/premiumTheme';
+import { premiumShadow, premiumSpacing, usePremiumTheme } from '../../../shared/theme/premiumTheme';
 
 const bookings = [
   { date: '2026-05-01', time: '09:00 AM', name: 'David Smith', service: 'Haircut, Beard Trim', id: '#1267', duration: '30m', status: 'Success', type: 'today' },
@@ -28,7 +28,9 @@ const tabs = [
   { key: 'past', label: 'Past' },
 ];
 
-const BookingCard = ({ item, onPress }: { item: any; onPress: () => void }) => (
+export const barberBookings = bookings;
+
+const BookingCard = ({ item, onPress, styles, premiumColors }: { item: any; onPress: () => void; styles: ReturnType<typeof createStyles>; premiumColors: ReturnType<typeof usePremiumTheme>['colors'] }) => (
   <TouchableOpacity style={styles.bookingCard} activeOpacity={0.85} onPress={onPress}>
     <View style={styles.cardTop}>
       <Image source={require('../../../assets/images/PNG/logo-light.png')} style={styles.avatar} />
@@ -51,9 +53,11 @@ const BookingCard = ({ item, onPress }: { item: any; onPress: () => void }) => (
 );
 
 const Bookings = () => {
+  const navigation = useNavigation<any>();
+  const { colors: premiumColors } = usePremiumTheme();
+  const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const [activeTab, setActiveTab] = useState('today');
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<any>(null);
 
   const filtered = useMemo(
     () => bookings.filter(item =>
@@ -112,40 +116,20 @@ const Bookings = () => {
             <Text style={styles.emptyTitle}>No bookings found</Text>
           </View>
         ) : filtered.map(item => (
-          <BookingCard key={item.id} item={item} onPress={() => setSelected(item)} />
+          <BookingCard
+            key={item.id}
+            item={item}
+            styles={styles}
+            premiumColors={premiumColors}
+            onPress={() => navigation.navigate('BookingDetails', { booking: item })}
+          />
         ))}
       </ScrollView>
-
-      <Modal visible={Boolean(selected)} transparent animationType="slide" onRequestClose={() => setSelected(null)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.sheet}>
-            {selected ? (
-              <>
-                <View style={styles.sheetHandle} />
-                <Text style={styles.sheetTitle}>Customer Details</Text>
-                <Text style={styles.sheetName}>{selected.name}</Text>
-                <Text style={styles.sheetSub}>{selected.service}</Text>
-                <View style={styles.sheetRow}>
-                  <Text style={styles.sheetLabel}>Time</Text>
-                  <Text style={styles.sheetValue}>{selected.time}</Text>
-                </View>
-                <View style={styles.sheetRow}>
-                  <Text style={styles.sheetLabel}>Duration</Text>
-                  <Text style={styles.sheetValue}>{selected.duration}</Text>
-                </View>
-                <TouchableOpacity style={styles.primaryButton} onPress={() => setSelected(null)}>
-                  <Text style={styles.primaryButtonText}>Done</Text>
-                </TouchableOpacity>
-              </>
-            ) : null}
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors']) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: premiumColors.canvas },
   countPill: {
     width: 44,
