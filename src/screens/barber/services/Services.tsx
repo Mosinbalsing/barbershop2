@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 import {
   FlatList,
   Modal,
@@ -16,7 +17,7 @@ import {
   usePremiumTheme,
 } from '../../../shared/theme/premiumTheme';
 
-const categories = [
+const initialCategories = [
   // { id: 'all', name: 'All', shortName: 'All', icon: 'th-large' },
   {
     id: 'hair',
@@ -177,6 +178,7 @@ const Services = () => {
   const serviceListRef = useRef<FlatList<(typeof initialServices)[number]>>(null);
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
+  const [categories, setCategories] = useState(initialCategories);
   const [services, setServices] = useState(initialServices);
   const [category, setCategory] = useState('hair');
   const [search, setSearch] = useState('');
@@ -188,6 +190,9 @@ const Services = () => {
     description: '',
     category: 'hair',
   });
+  const [showCategoryInput, setShowCategoryInput] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [editMode, setEditMode] = useState(false);
 
   const filtered = useMemo(
     () =>
@@ -226,6 +231,71 @@ const Services = () => {
     serviceListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
+  const handleAddCategoryClick = () => {
+    setShowCategoryInput(v => !v);
+  };
+
+  // Add new category logic
+  const handleSaveNewCategory = () => {
+    if (!newCategory.trim()) return;
+    // Generate a unique id
+    const id = newCategory.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '') + '-' + Date.now();
+    setCategories(prev => [
+      ...prev,
+      {
+        id,
+        name: newCategory.trim(),
+        shortName: newCategory.trim().length > 10 ? newCategory.trim().slice(0, 10) + '…' : newCategory.trim(),
+        icon: 'tag',
+      },
+    ]);
+    setShowCategoryInput(false);
+    setNewCategory('');
+  };
+
+  // Remove category with confirmation
+  const handleRemoveCategory = (catId) => {
+    const cat = categories.find(c => c.id === catId);
+    const relatedServices = services.filter(s => s.category === catId);
+    Alert.alert(
+      'Remove Category',
+      `Are you sure you want to remove "${cat?.name}"? This will also remove ${relatedServices.length} service(s) in this category.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove', style: 'destructive', onPress: () => {
+            setCategories(prev => prev.filter(c => c.id !== catId));
+            setServices(prev => prev.filter(s => s.category !== catId));
+            if (category === catId) setCategory(categories[0]?.id || '');
+          }
+        },
+      ]
+    );
+  };
+
+  // Remove service
+  const handleRemoveService = (serviceId) => {
+    Alert.alert(
+      'Remove Service',
+      'Are you sure you want to remove this service?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove', style: 'destructive', onPress: () => {
+            setServices(prev => prev.filter(s => s.id !== serviceId));
+          }
+        },
+      ]
+    );
+  };
+
+  // Helper to close modal and reset category input state
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setShowCategoryInput(false);
+    setNewCategory('');
+  };
+
   return (
     <View style={styles.screen}>
       <PremiumHeader
@@ -233,12 +303,20 @@ const Services = () => {
         title="Services"
         subtitle="Manage salon plans, prices, and booking time."
         right={
-          <TouchableOpacity
-            style={styles.addCircle}
-            onPress={() => setModalOpen(true)}
-          >
-            <Icon name="plus" size={18} color={premiumColors.surface} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setEditMode(e => !e)}
+            >
+              <Icon name={editMode ? 'check' : 'edit'} size={18} color={premiumColors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.addCircle, { marginLeft: 8 }]}
+              onPress={() => setModalOpen(true)}
+            >
+              <Icon name="plus" size={18} color={premiumColors.surface} />
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -253,47 +331,68 @@ const Services = () => {
         />
       </View>
 
-      <FlatList
-        horizontal
-        data={categories}
-        style={styles.categoryNav}
-        keyExtractor={item => item.id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryList}
-        renderItem={({ item }) => {
-          const active = category === item.id;
-
-          return (
-            <TouchableOpacity
-              style={styles.categoryItem}
-              onPress={() => selectCategory(item.id)}
-            >
-              <View
-                style={[
-                  styles.categoryIconWrap,
-                  active && styles.categoryIconActive,
-                ]}
-              >
-                <Icon
-                  name={item.icon}
-                  size={21}
-                  color={active ? premiumColors.ink : premiumColors.nav}
-                />
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <FlatList
+          horizontal
+          data={categories}
+          style={styles.categoryNav}
+          keyExtractor={item => item.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryList}
+          renderItem={({ item }) => {
+            const active = category === item.id;
+            return (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TouchableOpacity
+                  style={styles.categoryItem}
+                  onPress={() => selectCategory(item.id)}
+                >
+                  <View
+                    style={[
+                      styles.categoryIconWrap,
+                      active && [
+                        styles.categoryIconActive,
+                        { backgroundColor: premiumColors.primary + '33' },
+                      ],
+                    ]}
+                  >
+                    <Icon
+                      name={item.icon}
+                      size={21}
+                      color={active ? premiumColors.ink : premiumColors.muted}
+                    />
+                  </View>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.categoryLabel,
+                      { color: active ? premiumColors.ink : premiumColors.muted },
+                      active && styles.categoryLabelActive,
+                    ]}
+                  >
+                    {item.shortName}
+                  </Text>
+                  {active && <View style={styles.activeBar} />}
+                </TouchableOpacity>
+                {editMode && (
+                  <TouchableOpacity
+                    style={styles.editIconButton}
+                    onPress={() => handleRemoveCategory(item.id)}
+                  >
+                    <Icon name="trash" size={16} color={premiumColors.primary} />
+                  </TouchableOpacity>
+                )}
               </View>
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.categoryLabel,
-                  active && styles.categoryLabelActive,
-                ]}
-              >
-                {item.shortName}
-              </Text>
-              {active && <View style={styles.activeBar} />}
-            </TouchableOpacity>
-          );
-        }}
-      />
+            );
+          }}
+        />
+        {/* <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => setEditMode(e => !e)}
+        >
+          <Icon name={editMode ? 'check' : 'edit'} size={18} color={premiumColors.primary} />
+        </TouchableOpacity> */}
+      </View>
 
       <FlatList
         ref={serviceListRef}
@@ -327,6 +426,14 @@ const Services = () => {
                   <Icon name="clock-o" size={11} color={premiumColors.muted} />
                   <Text style={styles.timeText}>{item.duration}</Text>
                 </View>
+                {editMode && (
+                  <TouchableOpacity
+                    style={styles.editIconButton}
+                    onPress={() => handleRemoveService(item.id)}
+                  >
+                    <Icon name="trash" size={16} color={premiumColors.primary} />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -340,12 +447,33 @@ const Services = () => {
         visible={modalOpen}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalOpen(false)}
+        onRequestClose={handleCloseModal}
       >
         <View style={styles.overlay}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleCloseModal} />
           <View style={styles.sheet}>
-            <View style={styles.sheetHandle} />
+            <TouchableOpacity style={styles.closeIcon} onPress={handleCloseModal}>
+              <Icon name="close" size={22} color={premiumColors.ink} />
+            </TouchableOpacity>
             <Text style={styles.sheetTitle}>Add Service</Text>
+            {showCategoryInput && (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TextInput
+                  placeholder="New Category Name"
+                  placeholderTextColor={premiumColors.muted}
+                  style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                  value={newCategory}
+                  onChangeText={setNewCategory}
+                  autoFocus
+                />
+                <TouchableOpacity
+                  style={styles.saveCategoryButton}
+                  onPress={handleSaveNewCategory}
+                >
+                  <Icon name="check" size={18} color={premiumColors.surface} />
+                </TouchableOpacity>
+              </View>
+            )}
             <TextInput
               placeholder="Service name"
               placeholderTextColor={premiumColors.muted}
@@ -408,6 +536,11 @@ const Services = () => {
                     </Text>
                   </TouchableOpacity>
                 ))}
+              <TouchableOpacity
+                style={styles.addCategoryButton}
+                onPress={handleAddCategoryClick}>
+                <Text style={styles.addCategoryButtonText}>+ Add Category</Text>
+              </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={styles.primaryButton}
@@ -423,6 +556,38 @@ const Services = () => {
 };
 
 const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors']) => StyleSheet.create({
+  editButton: {
+    marginLeft: 8,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: premiumColors.surface,
+    borderWidth: 1,
+    borderColor: premiumColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 36,
+    width: 36,
+  },
+  editIconButton: {
+    marginLeft: 2,
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: premiumColors.surface,
+    borderWidth: 1,
+    borderColor: premiumColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 28,
+    width: 28,
+  },
+  saveCategoryButton: {
+    marginLeft: 8,
+    backgroundColor: premiumColors.primary,
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   screen: { flex: 1, backgroundColor: premiumColors.canvas },
   addCircle: {
     width: 44,
@@ -631,6 +796,25 @@ const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors'
     color: premiumColors.surface,
     fontSize: 16,
     fontWeight: '900',
+  },
+  closeIcon: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    padding: 8,
+  },
+  addCategoryButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 14,
+    backgroundColor: premiumColors.primary,
+    marginLeft: 8,
+  },
+  addCategoryButtonText: {
+    color: premiumColors.surface,
+    fontWeight: '800',
+    fontSize: 13,
   },
 });
 
