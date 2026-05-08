@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Alert,
+  FlatList,
   Modal,
   ScrollView,
   StyleSheet,
@@ -18,6 +19,7 @@ import {
   premiumSpacing,
   usePremiumTheme,
 } from '../../../shared/theme/premiumTheme';
+import { useGetSettings , usePostSettings} from './SettingApi';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const slots = [30, 45, 60];
@@ -47,12 +49,71 @@ const getDateRange = (startDate: string, endDate: string) => {
   return dates;
 };
 
+const convertTo24Hour = (time12h: string) => {
+  if (!time12h || time12h === '--') return null;
+  const [time, modifier] = time12h.split(' ');
+  let [hours, minutes] = time.split(':');
+  if (hours === '12') {
+    hours = '00';
+  }
+  if (modifier === 'PM') {
+    hours = (parseInt(hours, 10) + 12).toString();
+  }
+  return `${hours.padStart(2, '0')}:${minutes}`;
+};
+
+const convertTo12Hour = (time24h: string) => {
+  if (!time24h) return null;
+  const [hoursStr, minutes] = time24h.split(':');
+  let hours = parseInt(hoursStr, 10);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${hours.toString().padStart(2, '0')}:${minutes} ${period}`;
+};
+
+const TimeSelectorList = ({ options, value, onChange, styles, suffix = "" }: any) => {
+  const flatListRef = React.useRef<FlatList>(null);
+
+  useEffect(() => {
+    const index = options.indexOf(value);
+    if (index !== -1 && flatListRef.current) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
+      }, 300);
+    }
+  }, [value, options]);
+
+  return (
+    <FlatList
+      ref={flatListRef}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.selectorTrack}
+      data={options}
+      keyExtractor={item => item.toString()}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={[styles.selectorChip, value === item && styles.selectorChipActive]}
+          onPress={() => onChange(item)}
+        >
+          <Text style={[styles.selectorText, value === item && styles.selectorTextActive]}>
+            {item}{suffix}
+          </Text>
+        </TouchableOpacity>
+      )}
+      onScrollToIndexFailed={() => {}}
+    />
+  );
+};
+
 const Setting = () => {
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const [openingTime, setOpeningTime] = useState('09:00 AM');
   const [closingTime, setClosingTime] = useState('07:00 PM');
   const [holiday, setHoliday] = useState('Sun');
+  const [lunchStartTime, setLunchStartTime] = useState('01:00 PM');
+  const [lunchEndTime, setLunchEndTime] = useState('02:00 PM');
   const [slot, setSlot] = useState(30);
   const [customSlot, setCustomSlot] = useState<number | null>(null);
   const [emergency, setEmergency] = useState(false);
@@ -64,6 +125,35 @@ const Setting = () => {
   );
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [payloadPreview, setPayloadPreview] = useState('');
+
+  const { data: settingsResponse, isLoading } = useGetSettings();
+  const { mutate: postSettings } = usePostSettings();
+  
+
+  useEffect(() => {
+    if (settingsResponse) {
+      // The payload structure can be either direct or inside a .data object
+      const dataPayload = settingsResponse.data || settingsResponse;
+      
+      const s = dataPayload?.setting || dataPayload;
+      if (s) {
+        if (s.opening_time) setOpeningTime(convertTo12Hour(s.opening_time) || '09:00 AM');
+        if (s.closing_time) setClosingTime(convertTo12Hour(s.closing_time) || '07:00 PM');
+        if (s.week_holiday || s.weekly_holiday) setHoliday(s.week_holiday || s.weekly_holiday);
+        if (s.slot_duration || s.slot_duration_minutes) setSlot(s.slot_duration || s.slot_duration_minutes);
+        if (s.lunch_start_time) setLunchStartTime(convertTo12Hour(s.lunch_start_time) || '01:00 PM');
+        if (s.lunch_end_time) setLunchEndTime(convertTo12Hour(s.lunch_end_time) || '02:00 PM');
+      }
+      
+      const e = dataPayload?.emergency_holiday;
+      if (e) {
+        setEmergency(!!e.enabled);
+        if (e.reason) setHolidayReason(e.reason);
+        if (e.start_date) setHolidayStartDate(e.start_date);
+        if (e.end_date) setHolidayEndDate(e.end_date);
+      }
+    }
+  }, [settingsResponse]);
 
   const activeSlot = customSlot || slot;
 
@@ -135,13 +225,20 @@ const Setting = () => {
       return;
     }
 
+    if (!lunchStartTime.trim() || !lunchEndTime.trim()) {
+      Alert.alert('Missing lunch break', 'Please select lunch break start and end time.');
+      return;
+    }
+
     const payload = {
-      working_hours: {
+      setting: {
         opening_time: openingTime.trim(),
         closing_time: closingTime.trim(),
+        weekly_holiday: holiday,
+        slot_duration_minutes: activeSlot,
+        lunch_start_time: lunchStartTime.trim(),
+        lunch_end_time: lunchEndTime.trim(),
       },
-      weekly_holiday: holiday,
-      slot_duration_minutes: activeSlot,
       emergency_holiday: {
         enabled: emergency,
         start_date: emergency ? holidayStartDate : null,
@@ -153,7 +250,15 @@ const Setting = () => {
     const jsonPayload = JSON.stringify(payload, null, 2);
     setPayloadPreview(jsonPayload);
     console.log('settings payload', payload);
-    Alert.alert('JSON generated', 'Settings payload is ready to send backend.');
+    
+    postSettings(payload, {
+      onSuccess: () => {
+        Alert.alert('Success', 'Settings saved successfully!');
+      },
+      onError: (err: any) => {
+        Alert.alert('Error', err.message || 'Failed to save settings.');
+      }
+    });
   };
 
   return (
@@ -183,58 +288,17 @@ const Setting = () => {
             <Icon name="pencil" size={17} color={premiumColors.primary} />
           </View>
           <Text style={styles.label}>Start Time</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.selectorTrack}
-          >
-            {timeOptions.map(time => (
-              <TouchableOpacity
-                key={`start-${time}`}
-                style={[
-                  styles.selectorChip,
-                  openingTime === time && styles.selectorChipActive,
-                ]}
-                onPress={() => setOpeningTime(time)}
-              >
-                <Text
-                  style={[
-                    styles.selectorText,
-                    openingTime === time && styles.selectorTextActive,
-                  ]}
-                >
-                  {time}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <TimeSelectorList options={timeOptions} value={openingTime} onChange={setOpeningTime} styles={styles} />
 
           <Text style={styles.label}>End Time</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.selectorTrack}
-          >
-            {timeOptions.map(time => (
-              <TouchableOpacity
-                key={`end-${time}`}
-                style={[
-                  styles.selectorChip,
-                  closingTime === time && styles.selectorChipActive,
-                ]}
-                onPress={() => setClosingTime(time)}
-              >
-                <Text
-                  style={[
-                    styles.selectorText,
-                    closingTime === time && styles.selectorTextActive,
-                  ]}
-                >
-                  {time}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <TimeSelectorList options={timeOptions} value={closingTime} onChange={setClosingTime} styles={styles} />
+
+          {/* Lunch Break Section */}
+          <Text style={styles.label}>Lunch Start Time</Text>
+          <TimeSelectorList options={timeOptions} value={lunchStartTime} onChange={setLunchStartTime} styles={styles} />
+
+          <Text style={styles.label}>Lunch End Time</Text>
+          <TimeSelectorList options={timeOptions} value={lunchEndTime} onChange={setLunchEndTime} styles={styles} />
         </View>
 
         <View style={styles.card}>
@@ -294,31 +358,13 @@ const Setting = () => {
             ))}
           </View>
           <Text style={styles.label}>Custom Minutes</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.selectorTrack}
-          >
-            {customMinuteOptions.map(minutes => (
-              <TouchableOpacity
-                key={minutes}
-                style={[
-                  styles.selectorChip,
-                  customSlot === minutes && styles.selectorChipActive,
-                ]}
-                onPress={() => setCustomSlot(minutes)}
-              >
-                <Text
-                  style={[
-                    styles.selectorText,
-                    customSlot === minutes && styles.selectorTextActive,
-                  ]}
-                >
-                  {minutes} min
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <TimeSelectorList 
+            options={customMinuteOptions} 
+            value={customSlot} 
+            onChange={setCustomSlot} 
+            styles={styles} 
+            suffix=" min" 
+          />
           <Text style={styles.helper}>
             Generated slots will follow your active working hours.
           </Text>

@@ -2,55 +2,38 @@
 import React from 'react';
 import { View, Text, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { usePremiumTheme } from '../../shared/theme/premiumTheme';
 import AdminDashboard from '../../screens/admin/AdminDashboard';
 import BarbersAdmin from '../../screens/admin/BarbersAdmin';
 import UsersAdmin from '../../screens/admin/UsersAdmin';
 import AdminProfile from '../../screens/admin/AdminProfile';
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 
 const renderIcon = (icon: string, label: string, focused: boolean, colors: ReturnType<typeof usePremiumTheme>['colors']) => (
-  <View style={{ alignItems: "center", marginTop: 8 }}>
-    {focused && (
-      <View
-        style={{
-          width: 38,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: colors.softPrimary,
-          position: 'absolute',
-          top: -3,
-          zIndex: 2,
-          ...Platform.select({
-            android: {
-              elevation: 2,
-            },
-            ios: {
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.18,
-              shadowRadius: 12,
-            },
-          }),
-        }}
-      />
-    )}
+  <View style={{
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: focused ? 'rgba(1, 114, 203, 0.2)' : 'transparent', // Matches a dark translucent blue capsule
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginTop: 2,
+    minWidth: 70,
+  }}>
     <Icon
       name={icon}
-      size={21}
+      size={22}
       color={focused ? colors.primary : "#FFFFFF"}
-      style={{ zIndex: 3 }}
     />
     <Text
       style={{
         fontSize: 11,
-        marginTop: 8,
-        color: focused ? "#FFFFFF" : "#D8D7DD",
-        fontWeight: focused ? "800" : "600",
+        marginTop: 4,
+        color: focused ? colors.primary : "#D8D7DD",
+        fontWeight: focused ? "700" : "500",
         textAlign: "center",
-        width: 100,
       }}
       numberOfLines={1}
     >
@@ -64,14 +47,22 @@ const AdminBottomTabs = () => {
 
   return (
     <Tab.Navigator
+      tabBarPosition="bottom"
       screenOptions={{
-        headerShown: false,
+        swipeEnabled: true,
+        animationEnabled: true,
         tabBarShowLabel: false,
+        tabBarIndicatorStyle: { backgroundColor: 'transparent', height: 0 },
         tabBarStyle: {
-          height: 76,
+          height: 64, // Increased height to fit the capsule
           marginHorizontal: 16,
           marginBottom: 12,
-          borderRadius: 28,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          paddingBottom: 0,
+          justifyContent: 'center',
+          borderRadius: 32,
           position: 'absolute',
           backgroundColor: colors.nav,
           borderTopWidth: 0,

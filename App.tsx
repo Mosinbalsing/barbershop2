@@ -5,6 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import AppNavigation from  './src/navigation/common/AppNavigation'
 import { usePremiumTheme } from './src/shared/theme/premiumTheme';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const App = () => {
   const { colors, mode } = usePremiumTheme();
@@ -23,10 +26,12 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.canvas }}>
-    <NavigationContainer theme={navigationTheme}>
-      <AppNavigation/>
-    </NavigationContainer>
-    </SafeAreaView>
+        <QueryClientProvider client={queryClient}>
+          <NavigationContainer theme={navigationTheme}>
+            <AppNavigation/>
+          </NavigationContainer>
+        </QueryClientProvider>
+      </SafeAreaView>
     </SafeAreaProvider>
   )
 }
