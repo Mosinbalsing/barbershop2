@@ -1,12 +1,18 @@
 // storage.js
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// cspell:ignore MMKV mmkv
+import { MMKV } from "react-native-mmkv";
+console.log("MMKV", MMKV);
+
+const storage = new MMKV();
 
 export const storeData = async (key, value) => {
-  console.log("StoreData key value", key ,value)
   try {
-    await AsyncStorage.setItem(key, JSON.stringify(value));
-    console.log(key," saved! in async storage");
+    if (value === undefined) {
+      storage.delete(key);
+      return;
+    }
 
+    storage.set(key, JSON.stringify(value));
   } catch (e) {
     console.log("Store error:", e);
   }
@@ -14,8 +20,17 @@ export const storeData = async (key, value) => {
 
 export const getData = async (key) => {
   try {
-    const value = await AsyncStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
+    const value = storage.getString(key);
+
+    if (value == null) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
   } catch (e) {
     console.log("Get error:", e);
   }
@@ -23,7 +38,7 @@ export const getData = async (key) => {
 
 export const removeData = async (key) => {
   try {
-    await AsyncStorage.removeItem(key);
+    storage.delete(key);
   } catch (e) {
     console.log("Remove error:", e);
   }
@@ -31,7 +46,7 @@ export const removeData = async (key) => {
 
 export const clearAll = async () => {
   try {
-    await AsyncStorage.clear();
+    storage.clearAll();
   } catch (e) {
     console.log("Clear error:", e);
   }

@@ -1,6 +1,6 @@
 import { getData, storeData } from "../helper/storage";
-import { enviornments } from "../environments/environment_constant";
-import { apiPath } from "../environments/environment_urls";
+import { enviornments } from "../environment/environment_constant";
+import { apiPath } from "../environment/environment_urls";
 
 const parseResponseBody = async (response) => {
     const responseContentType = response.headers.get('content-type') || '';
