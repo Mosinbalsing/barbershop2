@@ -14,9 +14,11 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { fetchApi } from "../../../Api/http_services";
 import { apiPath } from "../../../environment/environment_urls";
-import { premiumColors, premiumShadow } from "../../../shared/theme/premiumTheme";
+import { premiumColors, premiumShadow, usePremiumTheme } from "../../../shared/theme/premiumTheme";
 
 export default function RegisterScreen() {
+  const { mode } = usePremiumTheme();
+  const inputTextColor = mode === 'dark' ? '#FFFFFF' : '#111111';
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -163,7 +165,7 @@ export default function RegisterScreen() {
             <View style={styles.halfInput}>
               <Text style={styles.label}>First Name</Text>
               <TextInput
-                style={[styles.input, { color: 'black' }]}
+                style={[styles.input, { color: inputTextColor }]}
                 placeholder="First Name"
                 placeholderTextColor={premiumColors.muted}
                 value={ResigerData?.first_name}
@@ -176,7 +178,7 @@ export default function RegisterScreen() {
             <View style={styles.halfInput}>
               <Text style={styles.label}>Last Name</Text>
               <TextInput
-                style={[styles.input, { color: 'black' }]}
+                style={[styles.input, { color: inputTextColor }]}
                 placeholder="Last Name"
                 placeholderTextColor={premiumColors.muted}
                 value={ResigerData?.last_name}
@@ -189,7 +191,7 @@ export default function RegisterScreen() {
 
           <Text style={styles.label}>Mobile Number</Text>
           <TextInput
-            style={[styles.input, { color: 'black' }]}
+            style={[styles.input, { color: inputTextColor }]}
             placeholder="Mobile Number"
             keyboardType="number-pad"
             maxLength={10}
@@ -239,7 +241,7 @@ export default function RegisterScreen() {
 
           <Text style={styles.label}>OTP</Text>
           <TextInput
-            style={[styles.input, { color: "black" }]}
+            style={[styles.input, { color: inputTextColor }]}
             placeholder="Enter 6-digit OTP"
             placeholderTextColor={premiumColors.muted}
             keyboardType="number-pad"
@@ -259,7 +261,7 @@ export default function RegisterScreen() {
               : null,
           ]}>
             <TextInput
-              style={[styles.passInput, Platform.OS === "ios" && { paddingVertical: 11 }]}
+              style={[styles.passInput, { color: inputTextColor }, Platform.OS === "ios" && { paddingVertical: 11 }]}
               placeholder="Enter Password"
               placeholderTextColor={premiumColors.muted}
               secureTextEntry={!passwordVisible}
@@ -292,7 +294,7 @@ export default function RegisterScreen() {
               : null,
           ]}>
             <TextInput
-              style={[styles.passInput, Platform.OS === "ios" && { paddingVertical: 11 }]}
+              style={[styles.passInput, { color: inputTextColor }, Platform.OS === "ios" && { paddingVertical: 11 }]}
               placeholderTextColor={premiumColors.muted}
               placeholder="Confirm Password"
               secureTextEntry={!confirmVisible}

@@ -17,7 +17,7 @@ import { fetchApi } from '../../../Api/http_services';
 import { apiPath } from '../../../environment/environment_urls';
 import { getData, removeData, storeData } from '../../../helper/storage';
 import Loader from '../../../shared/components/Loader';
-import { premiumColors, premiumShadow } from '../../../shared/theme/premiumTheme';
+import { premiumColors, premiumShadow, usePremiumTheme } from '../../../shared/theme/premiumTheme';
 
 /* ================= TYPES ================= */
 
@@ -50,6 +50,8 @@ type RootStackParamList = {
 /* ================= COMPONENT ================= */
 
 export default function LoginScreen() {
+  const { mode } = usePremiumTheme();
+  const inputTextColor = mode === 'dark' ? '#FFFFFF' : '#111111';
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
 
@@ -163,7 +165,7 @@ export default function LoginScreen() {
 
       <Text style={styles.label}>Mobile Number</Text>
       <TextInput
-        style={[styles.input, { color: 'black' }]}
+        style={[styles.input, { color: inputTextColor }]}
         placeholder="Enter your mobile number"
         placeholderTextColor={premiumColors.muted}
         keyboardType="numeric"
@@ -181,7 +183,7 @@ export default function LoginScreen() {
         ]}
       >
         <TextInput
-          style={[styles.passInput, { color: 'black' }]}
+          style={[styles.passInput, { color: inputTextColor }]}
           secureTextEntry={!passwordVisible}
           placeholderTextColor={premiumColors.muted}
           placeholder="Enter your password"

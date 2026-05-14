@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MetricCard, PremiumHeader } from '../../../shared/components/PremiumScaffold';
+import { removeData } from '../../../helper/storage';
 import {
   PremiumThemeMode,
   premiumShadow,
@@ -14,9 +16,28 @@ const appearanceOptions: Array<{ label: string; value: PremiumThemeMode; icon: s
   { label: 'Dark', value: 'dark', icon: 'moon-o' },
 ];
 
+type RootStackParamList = {
+  LoginScreen: undefined;
+};
+
 const Profile = () => {
   const { colors, mode, setMode } = usePremiumTheme();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const handleLogout = async () => {
+    await removeData('access_token');
+    await removeData('refresh_token');
+    await removeData('user_role');
+    await removeData('user_id');
+    await removeData('assigned');
+    await removeData('user_name');
+
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'LoginScreen' }],
+    });
+  };
 
   return (
     <View style={styles.screen}>
@@ -61,6 +82,10 @@ const Profile = () => {
           <MetricCard label="Rating" value="4.9" detail="Customer score" />
           <MetricCard label="Bookings" value="2K" detail="All time" tone="secondary" />
         </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Icon name="sign-out" size={16} color={colors.surface} />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
         {['Hair & Beard Cut', 'Hair Blonde', 'Full Body Massage'].map((item, index) => (
           <View key={item} style={styles.serviceRow}>
             <View>
@@ -94,6 +119,18 @@ const createStyles = (colors: ReturnType<typeof usePremiumTheme>['colors']) => S
   segmentText: { color: colors.muted, fontSize: 12, fontWeight: '900' },
   segmentTextActive: { color: '#111111' },
   metrics: { flexDirection: 'row', gap: 10, marginTop: 14, marginBottom: 14 },
+  logoutButton: {
+    marginBottom: 14,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  logoutText: { color: colors.surface, fontSize: 14, fontWeight: '900' },
   serviceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.surface, borderRadius: 18, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: colors.line },
   serviceName: { color: colors.ink, fontSize: 15, fontWeight: '900' },
   serviceTime: { color: colors.muted, fontSize: 12, marginTop: 4 },
