@@ -3,8 +3,8 @@ export const apiPath = {
     login: "api/auth/login/",
     sendotp: "api/auth/send-otp/",
     register: "api/auth/register/",
-    profile: "/api/auth/profile/",
-    refreshtoken: '/api/auth/refresh/',
+    profile: "api/auth/profile/",
+    refreshtoken: 'api/auth/refresh/',
     resetPassword: 'api/auth/reset-password/',
     sendResetOtp: 'api/auth/send-reset-otp/'
 
@@ -23,7 +23,6 @@ export const apiPath = {
 
   emergencyholiday: {
     list: "api/settings/emergency-holiday/",
-    save: "api/settings/emergency-holiday/save",
     delete: "api/settings/emergency-holiday/:id/",
   },
 }

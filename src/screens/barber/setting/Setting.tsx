@@ -64,6 +64,10 @@ const convertTo24Hour = (time12h: string) => {
 
 const convertTo12Hour = (time24h: string) => {
   if (!time24h) return null;
+  // Handle case where time might already be in 12-hour format
+  if (time24h.includes('AM') || time24h.includes('PM')) {
+    return time24h.trim();
+  }
   const [hoursStr, minutes] = time24h.split(':');
   let hours = parseInt(hoursStr, 10);
   const period = hours >= 12 ? 'PM' : 'AM';
@@ -112,7 +116,7 @@ const Setting = () => {
   const [openingTime, setOpeningTime] = useState('09:00 AM');
   const [closingTime, setClosingTime] = useState('07:00 PM');
   const [holiday, setHoliday] = useState('Sun');
-  const [lunchStartTime, setLunchStartTime] = useState('01:00 PM');
+  const [lunchStartTime, setLunchStartTime] = useState('01:00 AM');
   const [lunchEndTime, setLunchEndTime] = useState('02:00 PM');
   const [slot, setSlot] = useState(30);
   const [customSlot, setCustomSlot] = useState<number | null>(null);
@@ -234,8 +238,8 @@ const Setting = () => {
       setting: {
         opening_time: openingTime.trim(),
         closing_time: closingTime.trim(),
-        weekly_holiday: holiday,
-        slot_duration_minutes: activeSlot,
+        week_holiday: holiday,
+        slot_duration: activeSlot,
         lunch_start_time: lunchStartTime.trim(),
         lunch_end_time: lunchEndTime.trim(),
       },
@@ -249,7 +253,7 @@ const Setting = () => {
 
     const jsonPayload = JSON.stringify(payload, null, 2);
     setPayloadPreview(jsonPayload);
-    console.log('settings payload', payload);
+    console.log('settings payload', jsonPayload);
     
     postSettings(payload, {
       onSuccess: () => {
