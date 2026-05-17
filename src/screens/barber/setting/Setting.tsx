@@ -14,6 +14,11 @@ import {
 import { Calendar } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { PremiumHeader } from '../../../shared/components/PremiumScaffold';
+import Loader from '../../../shared/components/Loader';
+import {
+  AnimatedConfirmPopup,
+  AnimatedStatusPopup,
+} from '../../../shared/components/AnimatedPopup';
 import {
   premiumShadow,
   premiumSpacing,
@@ -75,17 +80,30 @@ const convertTo12Hour = (time24h: string) => {
   return `${hours.toString().padStart(2, '0')}:${minutes} ${period}`;
 };
 
+const normalizeMinutesValue = (value: any) => {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 const TimeSelectorList = ({ options, value, onChange, styles, suffix = "" }: any) => {
   const flatListRef = React.useRef<FlatList>(null);
+  const selectedIndex = useMemo(
+    () => options.findIndex((item: any) => String(item) === String(value)),
+    [options, value],
+  );
 
   useEffect(() => {
-    const index = options.indexOf(value);
-    if (index !== -1 && flatListRef.current) {
+    if (selectedIndex !== -1 && flatListRef.current) {
       setTimeout(() => {
-        flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
+        flatListRef.current?.scrollToIndex({
+          index: selectedIndex,
+          animated: true,
+          viewPosition: 0.5,
+        });
       }, 300);
     }
-  }, [value, options]);
+  }, [selectedIndex]);
 
   return (
     <FlatList
@@ -97,15 +115,31 @@ const TimeSelectorList = ({ options, value, onChange, styles, suffix = "" }: any
       keyExtractor={item => item.toString()}
       renderItem={({ item }) => (
         <TouchableOpacity
-          style={[styles.selectorChip, value === item && styles.selectorChipActive]}
+          style={[
+            styles.selectorChip,
+            String(value) === String(item) && styles.selectorChipActive,
+          ]}
           onPress={() => onChange(item)}
         >
-          <Text style={[styles.selectorText, value === item && styles.selectorTextActive]}>
+          <Text
+            style={[
+              styles.selectorText,
+              String(value) === String(item) && styles.selectorTextActive,
+            ]}
+          >
             {item}{suffix}
           </Text>
         </TouchableOpacity>
       )}
-      onScrollToIndexFailed={() => {}}
+      onScrollToIndexFailed={info => {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: info.index,
+            animated: true,
+            viewPosition: 0.5,
+          });
+        }, 250);
+      }}
     />
   );
 };
@@ -129,37 +163,84 @@ const Setting = () => {
   );
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [payloadPreview, setPayloadPreview] = useState('');
+  const [isApplyingSettings, setIsApplyingSettings] = useState(true);
+  const [hasHydratedSettings, setHasHydratedSettings] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [confirmSaveVisible, setConfirmSaveVisible] = useState(false);
+  const [statusPopup, setStatusPopup] = useState<{
+    visible: boolean;
+    variant: 'success' | 'error';
+    title: string;
+    message: string;
+  }>({
+    visible: false,
+    variant: 'success',
+    title: '',
+    message: '',
+  });
 
   const { data: settingsResponse, isLoading } = useGetSettings();
   const { mutate: postSettings } = usePostSettings();
   
 
   useEffect(() => {
-    if (settingsResponse) {
-      // The payload structure can be either direct or inside a .data object
-      const dataPayload = settingsResponse.data || settingsResponse;
-      
-      const s = dataPayload?.setting || dataPayload;
-      if (s) {
-        if (s.opening_time) setOpeningTime(convertTo12Hour(s.opening_time) || '09:00 AM');
-        if (s.closing_time) setClosingTime(convertTo12Hour(s.closing_time) || '07:00 PM');
-        if (s.week_holiday || s.weekly_holiday) setHoliday(s.week_holiday || s.weekly_holiday);
-        if (s.slot_duration || s.slot_duration_minutes) setSlot(s.slot_duration || s.slot_duration_minutes);
-        if (s.lunch_start_time) setLunchStartTime(convertTo12Hour(s.lunch_start_time) || '01:00 PM');
-        if (s.lunch_end_time) setLunchEndTime(convertTo12Hour(s.lunch_end_time) || '02:00 PM');
-      }
-      
-      const e = dataPayload?.emergency_holiday;
-      if (e) {
-        setEmergency(!!e.enabled);
-        if (e.reason) setHolidayReason(e.reason);
-        if (e.start_date) setHolidayStartDate(e.start_date);
-        if (e.end_date) setHolidayEndDate(e.end_date);
-      }
+    if (isLoading && !hasHydratedSettings) {
+      setIsApplyingSettings(true);
+      return;
     }
-  }, [settingsResponse]);
+
+    if (!settingsResponse) {
+      if (!isLoading) {
+        setIsApplyingSettings(false);
+        setHasHydratedSettings(true);
+      }
+      return;
+    }
+
+    setIsApplyingSettings(true);
+
+    // The payload structure can be either direct or inside a .data object
+    const dataPayload = settingsResponse.data || settingsResponse;
+
+    const s = dataPayload?.setting || dataPayload;
+    if (s) {
+      if (s.opening_time) setOpeningTime(convertTo12Hour(s.opening_time) || '09:00 AM');
+      if (s.closing_time) setClosingTime(convertTo12Hour(s.closing_time) || '07:00 PM');
+      if (s.week_holiday || s.weekly_holiday) setHoliday(s.week_holiday || s.weekly_holiday);
+      const incomingSlot = normalizeMinutesValue(
+        s.slot_duration || s.slot_duration_minutes,
+      );
+      if (incomingSlot) {
+        if (slots.includes(incomingSlot)) {
+          setSlot(incomingSlot);
+          setCustomSlot(null);
+        } else {
+          setCustomSlot(incomingSlot);
+        }
+      }
+      if (s.lunch_start_time) setLunchStartTime(convertTo12Hour(s.lunch_start_time) || '01:00 PM');
+      if (s.lunch_end_time) setLunchEndTime(convertTo12Hour(s.lunch_end_time) || '02:00 PM');
+    }
+
+    const e = dataPayload?.emergency_holiday;
+    if (e) {
+      setEmergency(!!e.enabled);
+      if (e.reason) setHolidayReason(e.reason);
+      if (e.start_date) setHolidayStartDate(e.start_date);
+      if (e.end_date) setHolidayEndDate(e.end_date);
+    }
+
+    const doneTimer = setTimeout(() => {
+      setIsApplyingSettings(false);
+      setHasHydratedSettings(true);
+    }, 0);
+
+    return () => clearTimeout(doneTimer);
+  }, [settingsResponse, isLoading, hasHydratedSettings]);
 
   const activeSlot = customSlot || slot;
+  const shouldShowLoader =
+    (!hasHydratedSettings && (isLoading || isApplyingSettings)) || isSaving;
 
   const markedDates = useMemo(() => {
     const marks: Record<string, object> = {};
@@ -213,26 +294,53 @@ const Setting = () => {
     setCalendarOpen(false);
   };
 
-  const saveSettings = () => {
+  const showStatusPopup = (
+    variant: 'success' | 'error',
+    title: string,
+    message: string,
+  ) => {
+    setStatusPopup({ visible: true, variant, title, message });
+  };
+
+  const validateBeforeSave = () => {
     if (!openingTime.trim() || !closingTime.trim()) {
-      Alert.alert('Missing time', 'Please enter opening and closing time.');
-      return;
+      showStatusPopup('error', 'Missing time', 'Please enter opening and closing time.');
+      return false;
     }
 
     if (!activeSlot || activeSlot <= 0) {
-      Alert.alert('Invalid slot', 'Please enter a valid slot duration.');
-      return;
+      showStatusPopup('error', 'Invalid slot', 'Please enter a valid slot duration.');
+      return false;
     }
 
     if (emergency && (!holidayStartDate || !holidayEndDate)) {
-      Alert.alert('Holiday dates', 'Please select start date and end date.');
-      return;
+      showStatusPopup('error', 'Holiday dates', 'Please select start date and end date.');
+      return false;
     }
 
     if (!lunchStartTime.trim() || !lunchEndTime.trim()) {
-      Alert.alert('Missing lunch break', 'Please select lunch break start and end time.');
+      showStatusPopup(
+        'error',
+        'Missing lunch break',
+        'Please select lunch break start and end time.',
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const saveSettings = () => {
+    if (!validateBeforeSave()) {
       return;
     }
+
+    setConfirmSaveVisible(true);
+  };
+
+  const confirmSaveSettings = () => {
+    setConfirmSaveVisible(false);
+    setIsSaving(true);
 
     const payload = {
       setting: {
@@ -257,11 +365,14 @@ const Setting = () => {
     
     postSettings(payload, {
       onSuccess: () => {
-        Alert.alert('Success', 'Settings saved successfully!');
+        showStatusPopup('success', 'Saved', 'Settings saved successfully!');
       },
       onError: (err: any) => {
-        Alert.alert('Error', err.message || 'Failed to save settings.');
-      }
+        showStatusPopup('error', 'Save failed', err.message || 'Failed to save settings.');
+      },
+      onSettled: () => {
+        setIsSaving(false);
+      },
     });
   };
 
@@ -475,6 +586,26 @@ const Setting = () => {
           </View>
         </View>
       </Modal>
+
+      <AnimatedConfirmPopup
+        visible={confirmSaveVisible}
+        title="Save Changes"
+        message="Do you want to update your settings now?"
+        confirmText="Yes, Save"
+        cancelText="No"
+        onCancel={() => setConfirmSaveVisible(false)}
+        onConfirm={confirmSaveSettings}
+      />
+
+      <AnimatedStatusPopup
+        visible={statusPopup.visible}
+        variant={statusPopup.variant}
+        title={statusPopup.title}
+        message={statusPopup.message}
+        onClose={() => setStatusPopup(prev => ({ ...prev, visible: false }))}
+      />
+
+      <Loader loading={shouldShowLoader} />
     </View>
   );
 };

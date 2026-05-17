@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, Platform } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { usePremiumTheme } from '../../shared/theme/premiumTheme';
@@ -13,31 +13,68 @@ import Profile from '../../screens/barber/profile/Profile';
 
 const Tab = createMaterialTopTabNavigator();
 
+type TabPalette = {
+  navBackground: string;
+  navBorder: string;
+  navTopLine: string;
+  inactiveText: string;
+  inactiveIcon: string;
+  activeIconBubble: string;
+  activeIcon: string;
+  activeText: string;
+};
 
-const renderIcon = (icon: string, label: string, focused: boolean, colors: ReturnType<typeof usePremiumTheme>['colors']) => (
-  <View style={{
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: focused ? 'rgba(1, 114, 203, 0.2)' : 'transparent', // Matches a dark translucent blue capsule
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginTop: 2,
-    minWidth: 70,
-  }}>
-    <Icon
-      name={icon}
-      size={22}
-      color={focused ? colors.primary : "#FFFFFF"}
-    />
+const getTabPalette = (
+  mode: ReturnType<typeof usePremiumTheme>['mode'],
+  colors: ReturnType<typeof usePremiumTheme>['colors'],
+): TabPalette => {
+  if (mode === 'dark') {
+    return {
+      navBackground: '#2A2255',
+      navBorder: 'rgba(255,255,255,0.08)',
+      navTopLine: 'rgba(255,255,255,0.18)',
+      inactiveText: '#AEA8CF',
+      inactiveIcon: '#B9B4D7',
+      activeIconBubble: 'rgba(255,255,255,0.2)',
+      activeIcon: '#FFFFFF',
+      activeText: '#FFFFFF',
+    };
+  }
+
+  return {
+    navBackground: '#6D4CF3',
+    navBorder: 'rgba(106,83,214,0.35)',
+    navTopLine: 'rgba(255,255,255,0.25)',
+    inactiveText: '#CFC6FF',
+    inactiveIcon: '#E7E0FF',
+    activeIconBubble: 'rgba(255,255,255,0.24)',
+    activeIcon: '#FFFFFF',
+    activeText: '#FFFFFF',
+  };
+};
+
+const renderIcon = (icon: string, label: string, focused: boolean, palette: TabPalette) => (
+  <View style={styles.tabItemWrap}>
+    <View
+      style={[
+        styles.iconBubble,
+        { backgroundColor: focused ? palette.activeIconBubble : 'transparent' },
+      ]}
+    >
+      <Icon
+        name={icon}
+        size={17}
+        color={focused ? palette.activeIcon : palette.inactiveIcon}
+      />
+    </View>
     <Text
-      style={{
-        fontSize: 11,
-        marginTop: 4,
-        color: focused ? colors.primary : "#D8D7DD",
-        fontWeight: focused ? "700" : "500",
-        textAlign: "center",
-      }}
+      style={[
+        styles.tabLabel,
+        {
+          color: focused ? palette.activeText : palette.inactiveText,
+          fontWeight: focused ? '800' : '600',
+        },
+      ]}
       numberOfLines={1}
     >
       {label}
@@ -48,6 +85,7 @@ const renderIcon = (icon: string, label: string, focused: boolean, colors: Retur
 const BarberBottomTabs = () => {
   const { colors, mode } = usePremiumTheme();
   const darkMode = mode === 'dark';
+  const palette = getTabPalette(mode, colors);
 
   return (
     <Tab.Navigator
@@ -58,26 +96,31 @@ const BarberBottomTabs = () => {
         tabBarShowLabel: false,
         tabBarIndicatorStyle: { backgroundColor: 'transparent', height: 0 },
         tabBarStyle: {
-          height: 64, // Increased height to fit the capsule
+          height: 78,
           marginHorizontal: 16,
-          marginBottom: 12,
+          marginBottom: Platform.select({ ios: 18, android: 10 }),
           bottom: 0,
           left: 0,
           right: 0,
-          paddingBottom: 0,
+          paddingBottom: 8,
+          paddingTop: 4,
           justifyContent: 'center',
-          borderRadius: 32,
+          borderRadius: 26,
           position: 'absolute',
-          backgroundColor: colors.nav,
-          borderTopWidth: darkMode ? 1 : 0,
-          borderLeftWidth: darkMode ? 1 : 0,
-          borderRightWidth: darkMode ? 1 : 0,
-          borderBottomWidth: darkMode ? 1 : 0,
-          borderColor: darkMode ? 'rgba(255,255,255,0.42)' : 'transparent',
-          elevation: 18,
-          shadowColor: darkMode ? '#FFFFFF' : '#20232A',
-          shadowOpacity: darkMode ? 0.18 : 0.16,
-          shadowRadius: darkMode ? 18 : 24,
+          backgroundColor: palette.navBackground,
+          borderWidth: 1,
+          borderColor: palette.navBorder,
+          borderTopColor: palette.navTopLine,
+          elevation: 20,
+          shadowColor: darkMode ? '#120F1E' : '#5A3DD6',
+          shadowOpacity: darkMode ? 0.45 : 0.35,
+          shadowRadius: darkMode ? 20 : 24,
+          shadowOffset: { width: 0, height: 12 },
+        },
+        tabBarPressColor: 'transparent',
+        tabBarItemStyle: {
+          paddingHorizontal: 0,
+          marginTop: 1,
         },
       }}
     >
@@ -86,7 +129,7 @@ const BarberBottomTabs = () => {
         component={BarberDashboard}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('home', 'Home', focused, colors),
+            renderIcon('home', 'Home', focused, palette),
         }}
       />
       <Tab.Screen
@@ -94,7 +137,7 @@ const BarberBottomTabs = () => {
         component={Bookings}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('calendar', 'Bookings', focused, colors),
+            renderIcon('calendar', 'Bookings', focused, palette),
         }}
       />
       <Tab.Screen
@@ -102,7 +145,7 @@ const BarberBottomTabs = () => {
         component={Services}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('briefcase', 'Services', focused, colors),
+            renderIcon('briefcase', 'Services', focused, palette),
         }}
       />
       <Tab.Screen
@@ -110,7 +153,7 @@ const BarberBottomTabs = () => {
         component={Setting}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('cog', 'Setting', focused, colors),
+            renderIcon('cog', 'Setting', focused, palette),
         }}
       />
       <Tab.Screen
@@ -118,11 +161,34 @@ const BarberBottomTabs = () => {
         component={Profile}
         options={{
           tabBarIcon: ({ focused }) =>
-            renderIcon('user', 'Profile', focused, colors),
+            renderIcon('user', 'Profile', focused, palette),
         }}
       />
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  tabItemWrap: {
+    minWidth: 66,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+  },
+  iconBubble: {
+    width: 30,
+    height: 30,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabLabel: {
+    fontSize: 10,
+    marginTop: 3,
+    textAlign: 'center',
+    letterSpacing: 0.15,
+  },
+});
 
 export default BarberBottomTabs;

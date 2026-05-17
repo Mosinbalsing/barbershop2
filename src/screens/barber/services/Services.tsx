@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import {
   FlatList,
@@ -16,7 +16,7 @@ import {
   premiumSpacing,
   usePremiumTheme,
 } from '../../../shared/theme/premiumTheme';
-
+import { useGetServices } from './ServiceApi';
 const initialCategories = [
   // { id: 'all', name: 'All', shortName: 'All', icon: 'th-large' },
   {
@@ -175,7 +175,8 @@ const initialServices = [
 ];
 
 const Services = () => {
-  const serviceListRef = useRef<FlatList<(typeof initialServices)[number]>>(null);
+  const serviceListRef =
+    useRef<FlatList<(typeof initialServices)[number]>>(null);
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const [categories, setCategories] = useState(initialCategories);
@@ -193,6 +194,17 @@ const Services = () => {
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [editMode, setEditMode] = useState(false);
+  const { data: fetchedServices, isLoading } = useGetServices();
+  let jsonPayload;
+
+  useEffect(() => {
+    if (fetchedServices) {
+      setServices(fetchedServices);
+      jsonPayload = JSON.stringify(fetchedServices, null, 2);
+    }
+  }, [fetchedServices]);
+
+  console.log('this is my services from backend', services);
 
   const filtered = useMemo(
     () =>
@@ -239,13 +251,23 @@ const Services = () => {
   const handleSaveNewCategory = () => {
     if (!newCategory.trim()) return;
     // Generate a unique id
-    const id = newCategory.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '') + '-' + Date.now();
+    const id =
+      newCategory
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-]/g, '') +
+      '-' +
+      Date.now();
     setCategories(prev => [
       ...prev,
       {
         id,
         name: newCategory.trim(),
-        shortName: newCategory.trim().length > 10 ? newCategory.trim().slice(0, 10) + '…' : newCategory.trim(),
+        shortName:
+          newCategory.trim().length > 10
+            ? newCategory.trim().slice(0, 10) + '…'
+            : newCategory.trim(),
         icon: 'tag',
       },
     ]);
@@ -254,7 +276,7 @@ const Services = () => {
   };
 
   // Remove category with confirmation
-  const handleRemoveCategory = (catId) => {
+  const handleRemoveCategory = (catId: string) => {
     const cat = categories.find(c => c.id === catId);
     const relatedServices = services.filter(s => s.category === catId);
     Alert.alert(
@@ -263,29 +285,33 @@ const Services = () => {
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Remove', style: 'destructive', onPress: () => {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
             setCategories(prev => prev.filter(c => c.id !== catId));
             setServices(prev => prev.filter(s => s.category !== catId));
             if (category === catId) setCategory(categories[0]?.id || '');
-          }
+          },
         },
-      ]
+      ],
     );
   };
 
   // Remove service
-  const handleRemoveService = (serviceId) => {
+  const handleRemoveService = (serviceId: string) => {
     Alert.alert(
       'Remove Service',
       'Are you sure you want to remove this service?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Remove', style: 'destructive', onPress: () => {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
             setServices(prev => prev.filter(s => s.id !== serviceId));
-          }
+          },
         },
-      ]
+      ],
     );
   };
 
@@ -298,6 +324,10 @@ const Services = () => {
 
   return (
     <View style={styles.screen}>
+      <View style={styles.previewCard}>
+        <Text style={styles.previewTitle}>Backend JSON</Text>
+        <Text style={styles.previewText}>{jsonPayload}</Text>
+      </View>
       <PremiumHeader
         eyebrow="Catalog"
         title="Services"
@@ -308,7 +338,11 @@ const Services = () => {
               style={styles.editButton}
               onPress={() => setEditMode(e => !e)}
             >
-              <Icon name={editMode ? 'check' : 'edit'} size={18} color={premiumColors.primary} />
+              <Icon
+                name={editMode ? 'check' : 'edit'}
+                size={18}
+                color={premiumColors.primary}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.addCircle, { marginLeft: 8 }]}
@@ -366,7 +400,9 @@ const Services = () => {
                     numberOfLines={1}
                     style={[
                       styles.categoryLabel,
-                      { color: active ? premiumColors.ink : premiumColors.muted },
+                      {
+                        color: active ? premiumColors.ink : premiumColors.muted,
+                      },
                       active && styles.categoryLabelActive,
                     ]}
                   >
@@ -379,7 +415,11 @@ const Services = () => {
                     style={styles.editIconButton}
                     onPress={() => handleRemoveCategory(item.id)}
                   >
-                    <Icon name="trash" size={16} color={premiumColors.primary} />
+                    <Icon
+                      name="trash"
+                      size={16}
+                      color={premiumColors.primary}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
@@ -431,7 +471,11 @@ const Services = () => {
                     style={styles.editIconButton}
                     onPress={() => handleRemoveService(item.id)}
                   >
-                    <Icon name="trash" size={16} color={premiumColors.primary} />
+                    <Icon
+                      name="trash"
+                      size={16}
+                      color={premiumColors.primary}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
@@ -450,9 +494,16 @@ const Services = () => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.overlay}>
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={handleCloseModal} />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={handleCloseModal}
+          />
           <View style={styles.sheet}>
-            <TouchableOpacity style={styles.closeIcon} onPress={handleCloseModal}>
+            <TouchableOpacity
+              style={styles.closeIcon}
+              onPress={handleCloseModal}
+            >
               <Icon name="close" size={22} color={premiumColors.ink} />
             </TouchableOpacity>
             <Text style={styles.sheetTitle}>Add Service</Text>
@@ -538,7 +589,8 @@ const Services = () => {
                 ))}
               <TouchableOpacity
                 style={styles.addCategoryButton}
-                onPress={handleAddCategoryClick}>
+                onPress={handleAddCategoryClick}
+              >
                 <Text style={styles.addCategoryButtonText}>+ Add Category</Text>
               </TouchableOpacity>
             </View>
@@ -555,267 +607,287 @@ const Services = () => {
   );
 };
 
-const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors']) => StyleSheet.create({
-  editButton: {
-    marginLeft: 8,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: premiumColors.surface,
-    borderWidth: 1,
-    borderColor: premiumColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 36,
-    width: 36,
-  },
-  editIconButton: {
-    marginLeft: 2,
-    padding: 4,
-    borderRadius: 8,
-    backgroundColor: premiumColors.surface,
-    borderWidth: 1,
-    borderColor: premiumColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 28,
-    width: 28,
-  },
-  saveCategoryButton: {
-    marginLeft: 8,
-    backgroundColor: premiumColors.primary,
-    borderRadius: 8,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  screen: { flex: 1, backgroundColor: premiumColors.canvas },
-  addCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: premiumColors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...premiumShadow,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: premiumSpacing.screen,
-    backgroundColor: premiumColors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: premiumColors.line,
-    paddingHorizontal: 16,
-    minHeight: 56,
-    ...premiumShadow,
-  },
-  searchInput: {
-    flex: 1,
-    color: premiumColors.ink,
-    fontSize: 15,
-    paddingVertical: 13,
-    marginLeft: 10,
-  },
-  categoryNav: {
-    flexGrow: 0,
-    height: 88,
-  },
-  categoryList: {
-    paddingHorizontal: 8,
-    paddingTop: 14,
-    paddingBottom: 8,
-  },
-  categoryItem: {
-    width: 92,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  categoryIconWrap: {
-    width: 42,
-    height: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryIconActive: { backgroundColor: '#FFF3CD', borderRadius: 12 },
-  categoryLabel: {
-    color: premiumColors.nav,
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: 3,
-    maxWidth: 84,
-  },
-  categoryLabelActive: { color: premiumColors.ink, fontWeight: '900' },
-  activeBar: {
-    width: 34,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: premiumColors.ink,
-    marginTop: 8,
-  },
-  categoryRowCompact: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  categoryPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 14,
-    backgroundColor: premiumColors.surface,
-    borderWidth: 1,
-    borderColor: premiumColors.line,
-  },
-  categoryPillActive: {
-    backgroundColor: premiumColors.primary,
-    borderColor: premiumColors.primary,
-  },
-  categoryText: { color: premiumColors.muted, fontWeight: '800', fontSize: 13 },
-  categoryTextActive: { color: premiumColors.surface },
-  list: {
-    paddingHorizontal: premiumSpacing.screen,
-    paddingTop: 0,
-    paddingBottom: 112,
-  },
-  serviceList: { flex: 1 },
-  gridRow: { gap: 14 },
-  card: {
-    flex: 1,
-    backgroundColor: premiumColors.surface,
-    borderRadius: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: premiumColors.line,
-    overflow: 'hidden',
-    ...premiumShadow,
-  },
-  visualBox: {
-    height: 126,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-  },
-  serviceIconCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: premiumColors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-    ...premiumShadow,
-  },
-  visualText: {
-    color: premiumColors.ink,
-    fontSize: 15,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  cardBody: { minHeight: 128, padding: 12 },
-  cardTitle: {
-    color: premiumColors.ink,
-    fontSize: 15,
-    fontWeight: '900',
-    lineHeight: 19,
-  },
-  price: { color: premiumColors.primary, fontSize: 16, fontWeight: '900' },
-  description: {
-    color: premiumColors.muted,
-    fontSize: 12,
-    marginTop: 6,
-    lineHeight: 16,
-  },
-  cardMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 'auto',
-    gap: 8,
-  },
-  timePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: premiumColors.canvas,
-    borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 5,
-    gap: 4,
-  },
-  timeText: { color: premiumColors.muted, fontSize: 11, fontWeight: '800' },
-  empty: {
-    color: premiumColors.muted,
-    textAlign: 'center',
-    marginTop: 40,
-    fontWeight: '700',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(32,35,42,0.35)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: premiumColors.surface,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    padding: 22,
-  },
-  sheetHandle: {
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: premiumColors.line,
-    alignSelf: 'center',
-    marginBottom: 18,
-  },
-  sheetTitle: {
-    color: premiumColors.ink,
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 16,
-  },
-  input: {
-    backgroundColor: premiumColors.canvas,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: premiumColors.ink,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: premiumColors.line,
-  },
-  primaryButton: {
-    backgroundColor: premiumColors.primary,
-    borderRadius: 16,
-    alignItems: 'center',
-    paddingVertical: 14,
-    marginTop: 4,
-  },
-  primaryButtonText: {
-    color: premiumColors.surface,
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  closeIcon: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 10,
-    padding: 8,
-  },
-  addCategoryButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 14,
-    backgroundColor: premiumColors.primary,
-    marginLeft: 8,
-  },
-  addCategoryButtonText: {
-    color: premiumColors.surface,
-    fontWeight: '800',
-    fontSize: 13,
-  },
-});
+const createStyles = (
+  premiumColors: ReturnType<typeof usePremiumTheme>['colors'],
+) =>
+  StyleSheet.create({
+    editButton: {
+      marginLeft: 8,
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: premiumColors.surface,
+      borderWidth: 1,
+      borderColor: premiumColors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 36,
+      width: 36,
+    },
+    editIconButton: {
+      marginLeft: 2,
+      padding: 4,
+      borderRadius: 8,
+      backgroundColor: premiumColors.surface,
+      borderWidth: 1,
+      borderColor: premiumColors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 28,
+      width: 28,
+    },
+    saveCategoryButton: {
+      marginLeft: 8,
+      backgroundColor: premiumColors.primary,
+      borderRadius: 8,
+      padding: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    previewCard: {
+      backgroundColor: premiumColors.ink,
+      borderRadius: 18,
+      padding: 14,
+      marginTop: 14,
+    },
+    previewTitle: {
+      color: premiumColors.secondary,
+      fontSize: 13,
+      fontWeight: '900',
+      marginBottom: 8,
+    },
+    previewText: { color: premiumColors.surface, fontSize: 12, lineHeight: 18 },
+    screen: { flex: 1, backgroundColor: premiumColors.canvas },
+    addCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: premiumColors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...premiumShadow,
+    },
+    searchBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: premiumSpacing.screen,
+      backgroundColor: premiumColors.surface,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: premiumColors.line,
+      paddingHorizontal: 16,
+      minHeight: 56,
+      ...premiumShadow,
+    },
+    searchInput: {
+      flex: 1,
+      color: premiumColors.ink,
+      fontSize: 15,
+      paddingVertical: 13,
+      marginLeft: 10,
+    },
+    categoryNav: {
+      flexGrow: 0,
+      height: 88,
+    },
+    categoryList: {
+      paddingHorizontal: 8,
+      paddingTop: 14,
+      paddingBottom: 8,
+    },
+    categoryItem: {
+      width: 92,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
+    categoryIconWrap: {
+      width: 42,
+      height: 34,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    categoryIconActive: { backgroundColor: '#FFF3CD', borderRadius: 12 },
+    categoryLabel: {
+      color: premiumColors.nav,
+      fontSize: 13,
+      fontWeight: '700',
+      marginTop: 3,
+      maxWidth: 84,
+    },
+    categoryLabelActive: { color: premiumColors.ink, fontWeight: '900' },
+    activeBar: {
+      width: 34,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: premiumColors.ink,
+      marginTop: 8,
+    },
+    categoryRowCompact: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 4,
+      marginBottom: 12,
+    },
+    categoryPill: {
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 14,
+      backgroundColor: premiumColors.surface,
+      borderWidth: 1,
+      borderColor: premiumColors.line,
+    },
+    categoryPillActive: {
+      backgroundColor: premiumColors.primary,
+      borderColor: premiumColors.primary,
+    },
+    categoryText: {
+      color: premiumColors.muted,
+      fontWeight: '800',
+      fontSize: 13,
+    },
+    categoryTextActive: { color: premiumColors.surface },
+    list: {
+      paddingHorizontal: premiumSpacing.screen,
+      paddingTop: 0,
+      paddingBottom: 112,
+    },
+    serviceList: { flex: 1 },
+    gridRow: { gap: 14 },
+    card: {
+      flex: 1,
+      backgroundColor: premiumColors.surface,
+      borderRadius: 18,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: premiumColors.line,
+      overflow: 'hidden',
+      ...premiumShadow,
+    },
+    visualBox: {
+      height: 126,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 12,
+    },
+    serviceIconCircle: {
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      backgroundColor: premiumColors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 10,
+      ...premiumShadow,
+    },
+    visualText: {
+      color: premiumColors.ink,
+      fontSize: 15,
+      fontWeight: '900',
+      textAlign: 'center',
+    },
+    cardBody: { minHeight: 128, padding: 12 },
+    cardTitle: {
+      color: premiumColors.ink,
+      fontSize: 15,
+      fontWeight: '900',
+      lineHeight: 19,
+    },
+    price: { color: premiumColors.primary, fontSize: 16, fontWeight: '900' },
+    description: {
+      color: premiumColors.muted,
+      fontSize: 12,
+      marginTop: 6,
+      lineHeight: 16,
+    },
+    cardMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 'auto',
+      gap: 8,
+    },
+    timePill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: premiumColors.canvas,
+      borderRadius: 10,
+      paddingHorizontal: 7,
+      paddingVertical: 5,
+      gap: 4,
+    },
+    timeText: { color: premiumColors.muted, fontSize: 11, fontWeight: '800' },
+    empty: {
+      color: premiumColors.muted,
+      textAlign: 'center',
+      marginTop: 40,
+      fontWeight: '700',
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(32,35,42,0.35)',
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      backgroundColor: premiumColors.surface,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      padding: 22,
+    },
+    sheetHandle: {
+      width: 44,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: premiumColors.line,
+      alignSelf: 'center',
+      marginBottom: 18,
+    },
+    sheetTitle: {
+      color: premiumColors.ink,
+      fontSize: 22,
+      fontWeight: '900',
+      marginBottom: 16,
+    },
+    input: {
+      backgroundColor: premiumColors.canvas,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      color: premiumColors.ink,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: premiumColors.line,
+    },
+    primaryButton: {
+      backgroundColor: premiumColors.primary,
+      borderRadius: 16,
+      alignItems: 'center',
+      paddingVertical: 14,
+      marginTop: 4,
+    },
+    primaryButtonText: {
+      color: premiumColors.surface,
+      fontSize: 16,
+      fontWeight: '900',
+    },
+    closeIcon: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      zIndex: 10,
+      padding: 8,
+    },
+    addCategoryButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 14,
+      backgroundColor: premiumColors.primary,
+      marginLeft: 8,
+    },
+    addCategoryButtonText: {
+      color: premiumColors.surface,
+      fontWeight: '800',
+      fontSize: 13,
+    },
+  });
 
 export default Services;
