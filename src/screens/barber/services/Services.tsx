@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import {
   FlatList,
-  Modal,
   StyleSheet,
   Text,
   TextInput,
@@ -17,171 +16,17 @@ import {
   usePremiumTheme,
 } from '../../../shared/theme/premiumTheme';
 import { useGetServices } from './ServiceApi';
-const initialCategories = [
-  // { id: 'all', name: 'All', shortName: 'All', icon: 'th-large' },
-  {
-    id: 'hair',
-    name: 'Hair Cutting & Styling',
-    shortName: 'Haircut',
-    icon: 'scissors',
-  },
-  {
-    id: 'grooming',
-    name: 'Grooming & Shaving',
-    shortName: 'Shaving',
-    icon: 'user',
-  },
-  {
-    id: 'treatment',
-    name: 'Hair Treatments & Color',
-    shortName: 'Treatment',
-    icon: 'magic',
-  },
-  {
-    id: 'skin',
-    name: 'Skin & Face Care',
-    shortName: 'Face Care',
-    icon: 'star',
-  },
-  {
-    id: 'massage',
-    name: 'Massage Therapy',
-    shortName: 'Massage',
-    icon: 'hand-paper-o',
-  },
-];
-
-const initialServices = [
-  {
-    id: '1',
-    name: 'Normal Haircut',
-    price: '120',
-    duration: '30 min',
-    description: 'Professional cuts tailored to your preference.',
-    category: 'hair',
-    tone: '#E9F7F2',
-    icon: 'scissors',
-  },
-  {
-    id: '2',
-    name: 'Style Haircut',
-    price: '150',
-    duration: '30 min',
-    description: 'Professional cuts tailored to your preference.',
-    category: 'hair',
-    tone: '#F7EBF1',
-    icon: 'scissors',
-  },
-  {
-    id: '3',
-    name: 'Normal Shave',
-    price: '80',
-    duration: '30 min',
-    description: 'Classic and precision shaving services.',
-    category: 'grooming',
-    tone: '#EEF1FF',
-    icon: 'user',
-  },
-  {
-    id: '4',
-    name: 'Style Shave',
-    price: '100',
-    duration: '30 min',
-    description: 'Classic and precision shaving services.',
-    category: 'grooming',
-    tone: '#FFF3E3',
-    icon: 'user',
-  },
-  {
-    id: '5',
-    name: 'Hair Color',
-    price: '150 - 550',
-    duration: '10 min',
-    description: 'Enhance your hair health and look.',
-    category: 'treatment',
-    tone: '#F0ECFF',
-    icon: 'magic',
-  },
-  {
-    id: '6',
-    name: 'Hair Spa',
-    price: '550',
-    duration: '20 min',
-    description: 'Enhance your hair health and look.',
-    category: 'treatment',
-    tone: '#EAFBF6',
-    icon: 'tint',
-  },
-  {
-    id: '7',
-    name: 'Clean Up',
-    price: '350',
-    duration: '20 min',
-    description: 'Deep cleaning and brightening treatments.',
-    category: 'skin',
-    tone: '#FFF0F0',
-    icon: 'star',
-  },
-  {
-    id: '8',
-    name: 'D-Tan (Detem)',
-    price: '350',
-    duration: '20 min',
-    description: 'Deep cleaning and brightening treatments.',
-    category: 'skin',
-    tone: '#FFF7D9',
-    icon: 'sun-o',
-  },
-  {
-    id: '9',
-    name: 'Bleach',
-    price: '350',
-    duration: '20 min',
-    description: 'Deep cleaning and brightening treatments.',
-    category: 'skin',
-    tone: '#EFF8FF',
-    icon: 'asterisk',
-  },
-  {
-    id: '10',
-    name: 'Facial (Premium Range)',
-    price: '550 - 3,500',
-    duration: '1 hr',
-    description: 'Deep cleaning and brightening treatments.',
-    category: 'skin',
-    tone: '#F5EEFF',
-    icon: 'diamond',
-  },
-  {
-    id: '11',
-    name: 'Normal Face Massage',
-    price: '150',
-    duration: '10 min',
-    description: 'Relaxation and rejuvenation.',
-    category: 'massage',
-    tone: '#E9F7F2',
-    icon: 'hand-paper-o',
-  },
-  {
-    id: '12',
-    name: 'Special Massage',
-    price: '250',
-    duration: '1 hr',
-    description: 'Relaxation and rejuvenation.',
-    category: 'massage',
-    tone: '#FDF0E7',
-    icon: 'hand-paper-o',
-  },
-];
+// Static initial data removed — services and categories are loaded
+// from the backend and mapped into the UI-friendly shape below.
 
 const Services = () => {
-  const serviceListRef =
-    useRef<FlatList<(typeof initialServices)[number]>>(null);
+  const serviceListRef = useRef<FlatList<any>>(null);
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
-  const [categories, setCategories] = useState(initialCategories);
-  const [services, setServices] = useState(initialServices);
-  const [category, setCategory] = useState('hair');
+  const [categories, setCategories] = useState<Array<any>>([]);
+  const [services, setServices] = useState<Array<any>>([]);
+  const [category, setCategory] = useState('all');
+  const [backendJson, setBackendJson] = useState('');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({
@@ -191,17 +36,60 @@ const Services = () => {
     description: '',
     category: 'hair',
   });
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [editMode, setEditMode] = useState(false);
   const { data: fetchedServices, isLoading } = useGetServices();
-  let jsonPayload;
-
+  // Map backend response (categories with nested services) into flat
+  // categories and services expected by the UI.
   useEffect(() => {
-    if (fetchedServices) {
-      setServices(fetchedServices);
-      jsonPayload = JSON.stringify(fetchedServices, null, 2);
-    }
+    if (!fetchedServices) return;
+
+    const iconMap: Record<string, string> = {
+      haircut: 'scissors',
+      haircutting: 'scissors',
+      hair: 'scissors',
+      shaving: 'user',
+      grooming: 'user',
+      treatment: 'magic',
+      skin: 'star',
+      massage: 'hand-paper-o',
+    };
+
+    const mappedCategories = fetchedServices.map((cat: any) => ({
+      id: String(cat.id),
+      name: cat.name,
+      shortName:
+        typeof cat.name === 'string' && cat.name.length > 10
+          ? cat.name.slice(0, 10) + '…'
+          : cat.name,
+      icon:
+        iconMap[(cat.name || '').toString().toLowerCase()] || 'tag',
+    }));
+
+    const mappedServices = fetchedServices.flatMap((cat: any) =>
+      (cat.services || []).map((s: any) => ({
+        id: String(s.id),
+        name: s.name,
+        price: s.cost != null ? String(s.cost) : '',
+        duration:
+          typeof s.duration === 'number' ? `${s.duration} min` : s.duration || '30 min',
+        description: s.description || '',
+        category: String(cat.id),
+        tone: '#F1ECFF',
+        icon:
+          iconMap[(cat.name || '').toString().toLowerCase()] || 'scissors',
+      })),
+    );
+
+    setCategories(mappedCategories);
+    setServices(mappedServices);
+    // If no category selected yet (default 'all' or empty), activate first category
+    setCategory(curr =>
+      curr === 'all' || curr === '' ? mappedCategories[0]?.id ?? 'all' : curr,
+    );
+    setBackendJson(JSON.stringify(fetchedServices, null, 2));
   }, [fetchedServices]);
 
   console.log('this is my services from backend', services);
@@ -218,16 +106,32 @@ const Services = () => {
 
   const saveService = () => {
     if (!form.name.trim() || !form.price.trim()) return;
-    setServices(prev => [
-      {
-        ...form,
-        id: Date.now().toString(),
-        duration: form.duration.trim() || '30 min',
-        tone: '#F1ECFF',
-        icon: 'scissors',
-      },
-      ...prev,
-    ]);
+    if (editingServiceId) {
+      // Update existing service
+      setServices(prev =>
+        prev.map(s =>
+          s.id === editingServiceId
+            ? {
+                ...s,
+                ...form,
+                price: form.price,
+                duration: form.duration.trim() || '30 min',
+              }
+            : s,
+        ),
+      );
+    } else {
+      setServices(prev => [
+        {
+          ...form,
+          id: Date.now().toString(),
+          duration: form.duration.trim() || '30 min',
+          tone: '#F1ECFF',
+          icon: 'scissors',
+        },
+        ...prev,
+      ]);
+    }
     setForm({
       name: '',
       price: '',
@@ -235,6 +139,7 @@ const Services = () => {
       description: '',
       category: 'hair',
     });
+    setEditingServiceId(null);
     setModalOpen(false);
   };
 
@@ -242,6 +147,35 @@ const Services = () => {
     setCategory(nextCategory);
     serviceListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
+
+  // Open modal handler with optional service for editing
+  const handleOpenModal = (service?: any) => {
+    console.log('Services: open modal requested', {
+      modalOpen,
+      categoriesCount: categories.length,
+      servicesCount: services.length,
+      editing: !!service,
+    });
+    if (service) {
+      setEditingServiceId(service.id);
+      setForm({
+        name: service.name || '',
+        price: service.price != null ? String(service.price) : service.price || '',
+        duration: service.duration || '30 min',
+        description: service.description || '',
+        category: service.category || categories[0]?.id || 'hair',
+      });
+    } else {
+      setEditingServiceId(null);
+      setForm({ name: '', price: '', duration: '', description: '', category: categories[0]?.id || 'hair' });
+    }
+    setModalOpen(true);
+  };
+
+  // Log modalOpen changes so we can see when the state actually updates
+  useEffect(() => {
+    console.log('Services: modalOpen changed ->', modalOpen);
+  }, [modalOpen]);
 
   const handleAddCategoryClick = () => {
     setShowCategoryInput(v => !v);
@@ -324,10 +258,7 @@ const Services = () => {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.previewCard}>
-        <Text style={styles.previewTitle}>Backend JSON</Text>
-        <Text style={styles.previewText}>{jsonPayload}</Text>
-      </View>
+   
       <PremiumHeader
         eyebrow="Catalog"
         title="Services"
@@ -346,7 +277,7 @@ const Services = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.addCircle, { marginLeft: 8 }]}
-              onPress={() => setModalOpen(true)}
+              onPress={handleOpenModal}
             >
               <Icon name="plus" size={18} color={premiumColors.surface} />
             </TouchableOpacity>
@@ -444,7 +375,11 @@ const Services = () => {
         columnWrapperStyle={styles.gridRow}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => (editMode ? handleOpenModal(item) : null)}
+            style={styles.card}
+          >
             <View style={[styles.visualBox, { backgroundColor: item.tone }]}>
               <View style={styles.serviceIconCircle}>
                 <Icon name={item.icon} size={28} color={premiumColors.ink} />
@@ -467,33 +402,32 @@ const Services = () => {
                   <Text style={styles.timeText}>{item.duration}</Text>
                 </View>
                 {editMode && (
-                  <TouchableOpacity
-                    style={styles.editIconButton}
-                    onPress={() => handleRemoveService(item.id)}
-                  >
-                    <Icon
-                      name="trash"
-                      size={16}
-                      color={premiumColors.primary}
-                    />
-                  </TouchableOpacity>
+                  <View style={styles.editIconColumn}>
+                    <TouchableOpacity
+                      style={styles.editIconButton}
+                      onPress={() => handleOpenModal(item)}
+                    >
+                      <Icon name="pencil" size={14} color={premiumColors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.editIconButton, { marginTop: 6 }]}
+                      onPress={() => handleRemoveService(item.id)}
+                    >
+                      <Icon name="trash" size={16} color={premiumColors.primary} />
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={
           <Text style={styles.empty}>No services match your search.</Text>
         }
       />
 
-      <Modal
-        visible={modalOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.overlay}>
+      {modalOpen && (
+        <View style={styles.overlay} pointerEvents="box-none">
           <TouchableOpacity
             style={{ flex: 1 }}
             activeOpacity={1}
@@ -506,7 +440,7 @@ const Services = () => {
             >
               <Icon name="close" size={22} color={premiumColors.ink} />
             </TouchableOpacity>
-            <Text style={styles.sheetTitle}>Add Service</Text>
+            <Text style={styles.sheetTitle}>{editingServiceId ? 'Edit Service' : 'Add Service'}</Text>
             {showCategoryInput && (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <TextInput
@@ -602,7 +536,7 @@ const Services = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      )}
     </View>
   );
 };
@@ -634,6 +568,11 @@ const createStyles = (
       justifyContent: 'center',
       height: 28,
       width: 28,
+    },
+    editIconColumn: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     saveCategoryButton: {
       marginLeft: 8,
@@ -823,15 +762,25 @@ const createStyles = (
       fontWeight: '700',
     },
     overlay: {
-      flex: 1,
+      // Make overlay absolute and high zIndex/elevation so it sits above other views
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       backgroundColor: 'rgba(32,35,42,0.35)',
       justifyContent: 'flex-end',
+      zIndex: 9999,
+      elevation: 9999,
     },
     sheet: {
       backgroundColor: premiumColors.surface,
       borderTopLeftRadius: 26,
       borderTopRightRadius: 26,
       padding: 22,
+      // Ensure sheet is elevated above content on Android and iOS
+      zIndex: 10000,
+      elevation: 10000,
     },
     sheetHandle: {
       width: 44,
@@ -873,7 +822,8 @@ const createStyles = (
       position: 'absolute',
       top: 12,
       right: 12,
-      zIndex: 10,
+      zIndex: 10001,
+      elevation: 10001,
       padding: 8,
     },
     addCategoryButton: {
