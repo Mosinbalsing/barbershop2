@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { MetricCard, PremiumHeader } from '../../../shared/components/PremiumScaffold';
+import { LineChart } from 'react-native-gifted-charts';
+import { PremiumHeader } from '../../../shared/components/PremiumScaffold';
 import { premiumShadow, premiumSpacing, usePremiumTheme } from '../../../shared/theme/premiumTheme';
 
 const appointments = [
@@ -19,6 +20,16 @@ const week = [
   { day: 'Tue', date: '13' },
   { day: 'Wed', date: '14' },
   { day: 'Thu', date: '15' },
+];
+
+const weeklyCustomerData = [
+  { value: 18, label: 'Mon' },
+  { value: 24, label: 'Tue' },
+  { value: 21, label: 'Wed' },
+  { value: 29, label: 'Thu' },
+  { value: 32, label: 'Fri' },
+  { value: 26, label: 'Sat' },
+  { value: 30, label: 'Sun' },
 ];
 
 const BarberDashboard = () => {
@@ -59,10 +70,38 @@ const BarberDashboard = () => {
               </View>
             </View>
           </View>
-          <View style={styles.metricsRow}>
-            <MetricCard label="Appointments" value="6" detail="Today" />
-            <MetricCard label="Retention" value="12%" detail="Past 90 days" tone="secondary" />
-            <MetricCard label="Productivity" value="45%" detail="Past 90 days" />
+
+          <View style={styles.chartHeaderRow}>
+            <Text style={styles.chartTitle}>This Week Customers</Text>
+            <Text style={styles.chartSubTitle}>Live trend</Text>
+          </View>
+          <View style={styles.chartWrap}>
+            <LineChart
+              data={weeklyCustomerData}
+              areaChart
+              curved
+              color={premiumColors.primary}
+              startFillColor={premiumColors.primary}
+              endFillColor={premiumColors.primary}
+              startOpacity={0.22}
+              endOpacity={0.04}
+              thickness={3}
+              yAxisColor="transparent"
+              xAxisColor={premiumColors.line}
+              rulesColor={premiumColors.line}
+              rulesType="solid"
+              yAxisTextStyle={{ color: premiumColors.muted, fontSize: 10 }}
+              xAxisLabelTextStyle={{ color: premiumColors.muted, fontSize: 10 }}
+              hideDataPoints={false}
+              dataPointsColor={premiumColors.secondary}
+              dataPointsRadius={4}
+              noOfSections={4}
+              maxValue={40}
+              spacing={32}
+              initialSpacing={8}
+              endSpacing={8}
+              hideOrigin
+            />
           </View>
         </View>
 
@@ -171,9 +210,29 @@ const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors'
     borderWidth: 3,
     borderColor: premiumColors.surface,
   },
-  metricsRow: {
+  chartHeaderRow: {
+    marginTop: 2,
+    marginBottom: 10,
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  chartTitle: {
+    color: premiumColors.ink,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  chartSubTitle: {
+    color: premiumColors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  chartWrap: {
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingRight: 8,
+    paddingLeft: 2,
+    backgroundColor: premiumColors.canvas,
   },
   calendarRow: {
     flexDirection: 'row',

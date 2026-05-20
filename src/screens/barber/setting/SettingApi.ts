@@ -13,7 +13,7 @@ export const useGetSettings = () => {
             if (response && response.status === false) {
                 throw new Error(response.message || 'Failed to fetch settings');
             }
-            console.log("response", response);
+            console.log("response GET Setting", response);
             return response;
         }
     });

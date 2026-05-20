@@ -36,7 +36,7 @@ const requestNewAccessToken = async (baseUrl, selectedLang) => {
         return null;
     }
 
-    const refreshUrl = baseUrl + apiPath?.auth?.refreshtoken;
+    const refreshUrl = `${baseUrl.replace(/\/+$/, '')}/${(apiPath?.auth?.refreshtoken || '').replace(/^\/+/, '')}`;
     const refreshHeaders = {
         "Accept-language": selectedLang || "en",
         "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const fetchApi = async (...args) => {
     const [method, url, token, isForm, body, resType, contentType] = args;
     const selectedLang = await getData("SelectedLanguage");
     const baseUrl = enviornments?.dev;
-    const fullUrl = baseUrl + url;
+    const fullUrl = `${baseUrl.replace(/\/+$/, '')}/${(url || '').replace(/^\/+/, '')}`;
     
     let headers = {
         "Accept-language": selectedLang || "en",
@@ -89,7 +89,10 @@ const fetchApi = async (...args) => {
         headers['Authorization'] = "Bearer " + token;
     }
 
-    if (!isForm) {
+    const methodUpper = String(method || '').toUpperCase();
+    const canHaveJsonBody = methodUpper !== 'GET' && methodUpper !== 'HEAD';
+
+    if (!isForm && canHaveJsonBody) {
         headers['Content-Type'] = contentType || 'application/json';
     }
 
