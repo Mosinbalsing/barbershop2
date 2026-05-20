@@ -1,6 +1,6 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { premiumColors } from "../theme/premiumTheme";
+import { premiumColors, zIndices } from "../theme/premiumTheme";
 
 export default function Loader({ loading = false }) {
   if (!loading) return null;
@@ -22,7 +22,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(32,35,42,0.28)",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 999,
+    zIndex: zIndices.modalOverlay,
+    elevation: zIndices.modalOverlay,
     flex: 1,
   },
 });

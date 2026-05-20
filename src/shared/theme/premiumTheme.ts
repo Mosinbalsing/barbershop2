@@ -77,3 +77,13 @@ export const premiumSpacing = {
   radius: 18,
   cardRadius: 16,
 };
+
+// Shared z-index / elevation tokens to keep overlays and modals
+// consistently above navigation elements (bottom tabs, headers).
+export const zIndices = {
+  bottomNav: 20, // matches bottom nav elevation/style
+  modalOverlay: 100000,
+  modalSheet: 100001,
+  modalCloseIcon: 100002,
+  dropdown: 100000,
+};

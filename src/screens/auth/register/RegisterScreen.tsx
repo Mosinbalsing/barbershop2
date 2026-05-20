@@ -14,7 +14,7 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { fetchApi } from "../../../Api/http_services";
 import { apiPath } from "../../../environment/environment_urls";
-import { premiumColors, premiumShadow, usePremiumTheme } from "../../../shared/theme/premiumTheme";
+import { premiumColors, premiumShadow, usePremiumTheme, zIndices } from "../../../shared/theme/premiumTheme";
 
 export default function RegisterScreen() {
   const { mode } = usePremiumTheme();
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     backgroundColor: premiumColors.primary,
     left: 22,
     top: 8,
-    zIndex: 999,
+    zIndex: zIndices.dropdown,
     paddingHorizontal: 8,
     fontSize: 16,
   },

@@ -9,127 +9,16 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { Calendar } from 'react-native-calendars';
 import { useNavigation } from '@react-navigation/native';
 import { PremiumHeader } from '../../../shared/components/PremiumScaffold';
 import {
   premiumShadow,
   premiumSpacing,
   usePremiumTheme,
+  zIndices,
 } from '../../../shared/theme/premiumTheme';
-import { ActivityIndicator } from 'react-native';
-
-const bookings = [
-  {
-    date: '2026-05-01',
-    time: '09:00 AM',
-    name: 'David Smith',
-    service: 'Haircut, Beard Trim',
-    id: '#1267',
-    duration: '30m',
-    status: 'Success',
-    type: 'today',
-  },
-  {
-    date: '2026-05-01',
-    time: '10:30 AM',
-    name: 'Michael Johnson',
-    service: 'Haircut',
-    id: '#1268',
-    duration: '45m',
-    status: 'Pending',
-    type: 'today',
-  },
-  {
-    date: '2026-05-01',
-    time: '12:30 PM',
-    name: 'Ryan Harris',
-    service: 'Beard Trim',
-    id: '#1269',
-    duration: '20m',
-    status: 'Pending',
-    type: 'today',
-  },
-  {
-    date: '2026-05-03',
-    time: '02:00 PM',
-    name: 'Emily Clark',
-    service: 'Hair Color',
-    id: '#1270',
-    duration: '60m',
-    status: 'Pending',
-    type: 'future',
-  },
-  {
-    date: '2026-05-04',
-    time: '11:00 AM',
-    name: 'Chris Evans',
-    service: 'Shave',
-    id: '#1271',
-    duration: '25m',
-    status: 'Pending',
-    type: 'future',
-  },
-  {
-    date: '2026-04-28',
-    time: '11:00 AM',
-    name: 'Sophia Lee',
-    service: 'Haircut',
-    id: '#1272',
-    duration: '30m',
-    status: 'Success',
-    type: 'past',
-  },
-  {
-    date: '2026-04-28',
-    time: '11:00 AM',
-    name: 'Sophia Lee',
-    service: 'Haircut',
-    id: '#1272',
-    duration: '30m',
-    status: 'Success',
-    type: 'past',
-  },
-  {
-    date: '2026-04-28',
-    time: '11:00 AM',
-    name: 'Sophia Lee',
-    service: 'Haircut',
-    id: '#1272',
-    duration: '30m',
-    status: 'Success',
-    type: 'past',
-  },
-  {
-    date: '2026-04-28',
-    time: '11:00 AM',
-    name: 'Sophia Lee',
-    service: 'Haircut',
-    id: '#1272',
-    duration: '30m',
-    status: 'Success',
-    type: 'past',
-  },
-  {
-    date: '2026-02-28',
-    time: '11:00 AM',
-    name: 'Sophia Lee',
-    service: 'Haircut',
-    id: '#1272',
-    duration: '30m',
-    status: 'Success',
-    type: 'past',
-  },
-  {
-    date: '2026-03-28',
-    time: '11:00 AM',
-    name: 'Sophia Lee',
-    service: 'Haircut',
-    id: '#1272',
-    duration: '30m',
-    status: 'Success',
-    type: 'past',
-  },
-];
+import { useOwnerBookings } from './BookingApi';
 
 const tabs = [
   { key: 'today', label: 'Today' },
@@ -137,7 +26,29 @@ const tabs = [
   { key: 'past', label: 'Past' },
 ];
 
-export const barberBookings = bookings;
+type BookingApiItem = {
+  booking_id: number;
+  customer_name: string;
+  mobile_no?: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  total_amount: number;
+  total_duration: number;
+  status: string;
+  services: Array<{ name?: string } | string>;
+};
+
+type BookingCardItem = {
+  id: string;
+  name: string;
+  service: string;
+  status: string;
+  time: string;
+  date: string;
+};
+
+export const barberBookings: BookingApiItem[] = [];
 
 const BookingCard = ({
   item,
@@ -165,12 +76,15 @@ const BookingCard = ({
         <Text style={styles.service}>{item.service}</Text>
       </View>
       <View
-        style={[styles.badge, item.status === 'Success' && styles.badgeSuccess]}
+        style={[
+          styles.badge,
+          item.status.toLowerCase() === 'booked' && styles.badgeSuccess,
+        ]}
       >
         <Text
           style={[
             styles.badgeText,
-            item.status === 'Success' && styles.badgeSuccessText,
+            item.status.toLowerCase() === 'booked' && styles.badgeSuccessText,
           ]}
         >
           {item.status}
@@ -261,66 +175,63 @@ const SkeletonCard = ({
   </View>
 );
 
+const formatServiceLabel = (services: BookingApiItem['services']) => {
+  if (!services || services.length === 0) return 'No services added';
+
+  return services
+    .map(service => {
+      if (typeof service === 'string') return service;
+      return service?.name || '';
+    })
+    .filter(Boolean)
+    .join(', ');
+};
+
+const mapBookings = (items: BookingApiItem[]): BookingCardItem[] =>
+  items.map(item => ({
+    id: `#${item.booking_id}`,
+    name: item.customer_name,
+    service: formatServiceLabel(item.services),
+    status: item.status,
+    time: item.start_time,
+    date: item.booking_date,
+  }));
+
 const Bookings = () => {
   const navigation = useNavigation<any>();
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const [activeTab, setActiveTab] = useState('today');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
-
+  const getYesterdayIso = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 10);
+  };
+  const [selectedDate, setSelectedDate] = useState<string>(getYesterdayIso());
+  const [showCalendar, setShowCalendar] = useState(false);
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
-  const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+  const { data: bookingsData, isLoading, isFetching } = useOwnerBookings({
+    type: activeTab as 'today' | 'future' | 'past',
+    date: activeTab === 'past' ? selectedDate : undefined,
+  });
+  const displayBookings = useMemo(() => {
+    const mapped = mapBookings((bookingsData as BookingApiItem[] | undefined) || []);
 
-  const filtered = useMemo(() => {
-    return bookings.filter(item => {
-      const itemDate = new Date(item.date);
-      itemDate.setHours(0, 0, 0, 0);
-      if (activeTab === 'today') {
-        return (
-          item.type === 'today' &&
-          itemDate.getTime() === todayDate.getTime() &&
-          `${item.name} ${item.service} ${item.id}`
-            .toLowerCase()
-            .includes(search.toLowerCase())
-        );
-      } else if (activeTab === 'future') {
-        // Only show bookings after today, within next 2 weeks
-        return (
-          item.type === 'future' &&
-          itemDate.getTime() > todayDate.getTime() &&
-          itemDate.getTime() <= todayDate.getTime() + twoWeeksMs &&
-          `${item.name} ${item.service} ${item.id}`
-            .toLowerCase()
-            .includes(search.toLowerCase())
-        );
-      } else if (activeTab === 'past') {
-        // Only show bookings before today, within last 2 weeks
-        return (
-          item.type === 'past' &&
-          itemDate.getTime() < todayDate.getTime() &&
-          itemDate.getTime() >= todayDate.getTime() - twoWeeksMs &&
-          `${item.name} ${item.service} ${item.id}`
-            .toLowerCase()
-            .includes(search.toLowerCase())
-        );
-      }
-      return false;
+    return mapped.filter(item => {
+      const query = `${item.name} ${item.service} ${item.id}`.toLowerCase();
+      return query.includes(search.toLowerCase());
     });
-  }, [activeTab, search]);
+  }, [bookingsData, search]);
 
   const dates = useMemo(() => {
     if (activeTab === 'today') return [];
-    // Only show unique dates for future and past
-    return Array.from(new Set(filtered.map(item => item.date)));
-  }, [activeTab, filtered]);
+    return Array.from(new Set(displayBookings.map(item => item.date)));
+  }, [activeTab, displayBookings]);
 
-  React.useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, [activeTab]);
+  const showSkeleton = isLoading || isFetching;
 
   return (
     <View style={[styles.screen, { flex: 1 }]}>
@@ -330,7 +241,7 @@ const Bookings = () => {
         subtitle="Manage today's flow, future work, and completed visits."
         right={
           <View style={styles.countPill}>
-            <Text style={styles.countText}>{filtered.length}</Text>
+            <Text style={styles.countText}>{displayBookings.length}</Text>
           </View>
         }
       />
@@ -353,6 +264,24 @@ const Bookings = () => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {activeTab === 'past' && (
+        <View style={styles.pastDateRow}>
+          <TouchableOpacity
+            style={styles.pastDatePill}
+            onPress={() => setShowCalendar(v => !v)}
+          >
+            <Icon name="calendar-o" size={14} color={premiumColors.primary} />
+            <Text style={styles.pastDateText}>
+              {new Date(selectedDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.searchBox}>
         <Icon name="search" size={16} color={premiumColors.muted} />
@@ -401,7 +330,22 @@ const Bookings = () => {
       )}
 
       <View style={{ flex: 1, minHeight: 300 }}>
-        {loading ? (
+        {showCalendar && activeTab === 'past' && (
+          <Calendar
+            onDayPress={day => {
+              setSelectedDate(day.dateString);
+              setShowCalendar(false);
+            }}
+            markedDates={{ [selectedDate]: { selected: true } }}
+            maxDate={getYesterdayIso()}
+            theme={{
+              selectedDayBackgroundColor: premiumColors.primary,
+              todayTextColor: premiumColors.primary,
+            }}
+            style={{ marginHorizontal: premiumSpacing.screen }}
+          />
+        )}
+        {showSkeleton ? (
           <ScrollView
             contentContainerStyle={[
               styles.list,
@@ -419,7 +363,7 @@ const Bookings = () => {
               />
             ))}
           </ScrollView>
-        ) : filtered.length === 0 ? (
+        ) : displayBookings.length === 0 ? (
           <View
             style={[
               styles.emptyCard,
@@ -437,7 +381,7 @@ const Bookings = () => {
             ]}
             showsVerticalScrollIndicator={true}
           >
-            {filtered.map(item => (
+            {displayBookings.map(item => (
               <BookingCard
                 key={item.id}
                 item={{ ...item, hideDate: activeTab === 'today' }}
@@ -514,12 +458,30 @@ const createStyles = (
     dateRow: {
       paddingHorizontal: premiumSpacing.screen,
       gap: 10,
-      height: 80,
+      paddingVertical: 6,
     },
+    pastDateRow: {
+      marginHorizontal: premiumSpacing.screen,
+      marginTop: 10,
+      marginBottom: 8,
+      alignItems: 'flex-start',
+    },
+    pastDatePill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 14,
+      backgroundColor: premiumColors.surface,
+      borderWidth: 1,
+      borderColor: premiumColors.line,
+    },
+    pastDateText: { color: premiumColors.ink, marginLeft: 8, fontWeight: '800' },
     datePill: {
       width: 54,
-      height: 66,
-      borderRadius: 17,
+      height: 54,
+      borderRadius: 14,
       backgroundColor: premiumColors.surface,
       alignItems: 'center',
       justifyContent: 'center',
@@ -535,7 +497,7 @@ const createStyles = (
       color: premiumColors.ink,
       fontWeight: '900',
       fontSize: 18,
-      marginTop: 5,
+      marginTop: 4,
     },
     dateActiveText: { color: premiumColors.surface },
     list: {
@@ -609,12 +571,16 @@ const createStyles = (
       flex: 1,
       backgroundColor: 'rgba(32,35,42,0.35)',
       justifyContent: 'flex-end',
+      zIndex: zIndices.modalOverlay,
+      elevation: zIndices.modalOverlay,
     },
     sheet: {
       backgroundColor: premiumColors.surface,
       borderTopLeftRadius: 26,
       borderTopRightRadius: 26,
       padding: 22,
+      zIndex: zIndices.modalSheet,
+      elevation: zIndices.modalSheet,
     },
     sheetHandle: {
       width: 44,
