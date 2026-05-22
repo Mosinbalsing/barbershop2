@@ -14,3 +14,18 @@ export const useGetBarberDashboard = () => {
         },
     });
 }
+
+export const useGetDashboardByDate = (selectedDate?: string) => {
+    return useQuery({
+        queryKey: ['barber-dashboard', selectedDate],
+        queryFn: async () => {
+            if (!selectedDate) return null;
+            const token = await getData("access_token");
+            const url = `${apiPath.barberDashboard}?selected_date=${selectedDate}`;
+            const response = await fetchApi('GET', url, token);
+            console.log("get dashboard by selected date", selectedDate, response);
+            return response;
+        },
+        enabled: !!selectedDate,
+    });
+};

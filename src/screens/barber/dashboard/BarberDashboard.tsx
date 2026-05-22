@@ -1,11 +1,23 @@
 import React, { useMemo } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LineChart } from 'react-native-gifted-charts';
 import { PremiumHeader } from '../../../shared/components/PremiumScaffold';
-import { premiumShadow, premiumSpacing, usePremiumTheme } from '../../../shared/theme/premiumTheme';
-import { useGetBarberDashboard } from './BarberDashboardApi';
+import {
+  premiumShadow,
+  premiumSpacing,
+  usePremiumTheme,
+} from '../../../shared/theme/premiumTheme';
+import { useGetBarberDashboard, useGetDashboardByDate } from './BarberDashboardApi';
 
 type DashboardWeekItem = {
   date: string;
@@ -38,7 +50,8 @@ const statusLabel = (status?: string) => {
   if (normalized === 'booked') return 'Booked';
   if (normalized === 'confirmed') return 'Confirmed';
   if (normalized === 'completed') return 'Completed';
-  if (normalized === 'cancelled' || normalized === 'canceled') return 'Cancelled';
+  if (normalized === 'cancelled' || normalized === 'canceled')
+    return 'Cancelled';
   if (!status) return 'Pending';
   return status[0].toUpperCase() + status.slice(1);
 };
@@ -63,7 +76,10 @@ const DashboardSkeleton = ({
   const styles = createStyles(colors);
 
   return (
-    <ScrollView contentContainerStyle={styles.skeletonWrap} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={styles.skeletonWrap}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.skeletonHeroCard}>
         <View style={styles.skeletonHeroTop}>
           <View style={styles.skeletonHeroCopy}>
@@ -112,6 +128,7 @@ const BarberDashboard = () => {
   const navigation = useNavigation<any>();
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
+  const [selectedDate, setSelectedDate] = React.useState<string | undefined>();
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -120,7 +137,15 @@ const BarberDashboard = () => {
   }, []);
 
   const { data: dashboardData, isLoading } = useGetBarberDashboard();
-  const dashboard = dashboardData as BarberDashboardResponse | undefined;
+  const { data: dateSpecificData, isLoading: isLoadingDateData } = useGetDashboardByDate(selectedDate);
+  
+  // Ensure data has correct structure before using
+  const dashboard = useMemo(() => {
+    if (selectedDate && dateSpecificData) {
+      return dateSpecificData as BarberDashboardResponse | undefined;
+    }
+    return dashboardData as BarberDashboardResponse | undefined;
+  }, [selectedDate, dateSpecificData, dashboardData]);
   const chartData = useMemo(
     () =>
       (dashboard?.week_data ?? []).map(item => ({
@@ -151,12 +176,17 @@ const BarberDashboard = () => {
       {isLoading ? (
         <DashboardSkeleton colors={premiumColors} />
       ) : (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.heroCard}>
             <View style={styles.heroTop}>
               <View>
                 <Text style={styles.heroLabel}>Total Bookings</Text>
-                <Text style={styles.heroValue}>{dashboard?.total_bookings ?? 0}</Text>
+                <Text style={styles.heroValue}>
+                  {dashboard?.total_bookings ?? 0}
+                </Text>
                 <Text style={styles.heroDetail}>
                   {dashboard?.total_week_bookings ?? 0} this week
                 </Text>
@@ -167,7 +197,11 @@ const BarberDashboard = () => {
                   style={styles.avatar}
                 />
                 <View style={styles.smallBubble}>
-                  <Icon name="calendar-check-o" size={15} color={premiumColors.secondary} />
+                  <Icon
+                    name="calendar-check-o"
+                    size={15}
+                    color={premiumColors.secondary}
+                  />
                 </View>
               </View>
             </View>
@@ -195,12 +229,17 @@ const BarberDashboard = () => {
                   rulesColor={premiumColors.line}
                   rulesType="solid"
                   yAxisTextStyle={{ color: premiumColors.muted, fontSize: 10 }}
-                  xAxisLabelTextStyle={{ color: premiumColors.muted, fontSize: 10 }}
+                  xAxisLabelTextStyle={{
+                    color: premiumColors.muted,
+                    fontSize: 10,
+                  }}
                   hideDataPoints={false}
                   dataPointsColor={premiumColors.secondary}
                   dataPointsRadius={4}
                   noOfSections={4}
-                  maxValue={Math.max(...chartData.map(item => item.value), 1) + 5}
+                  maxValue={
+                    Math.max(...chartData.map(item => item.value), 1) + 5
+                  }
                   spacing={32}
                   initialSpacing={8}
                   endSpacing={8}
@@ -208,23 +247,36 @@ const BarberDashboard = () => {
                 />
               ) : (
                 <View style={styles.chartEmptyState}>
-                  <Icon name="line-chart" size={24} color={premiumColors.muted} />
+                  <Icon
+                    name="line-chart"
+                    size={24}
+                    color={premiumColors.muted}
+                  />
                   <Text style={styles.chartEmptyText}>No weekly data yet</Text>
                 </View>
               )}
             </View>
           </View>
 
-          <View style={styles.calendarRow}>
-            {(dashboard?.week_data ?? []).map(item => {
-              const holiday = item.is_weekly_holiday || item.is_emergency_holiday;
+          <FlatList
+            data={dashboard?.week_data ?? []}
+            horizontal
+            keyExtractor={item => item.date}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.calendarRow}
+            renderItem={({ item }) => {
+              const holiday =
+                item.is_weekly_holiday || item.is_emergency_holiday;
+              const isSelected = selectedDate === item.date;
+
               return (
                 <TouchableOpacity
-                  key={item.date}
+                  onPress={() => setSelectedDate(item.date)}
                   style={[
                     styles.datePill,
                     item.booking_count > 0 && styles.datePillActive,
                     holiday && styles.datePillHoliday,
+                    isSelected && styles.datePillSelected,
                   ]}
                 >
                   <Text
@@ -232,31 +284,35 @@ const BarberDashboard = () => {
                       styles.dateDay,
                       item.booking_count > 0 && styles.dateActiveText,
                       holiday && styles.dateHolidayText,
+                      isSelected && styles.dateSelectedText,
                     ]}
                   >
                     {item.day}
                   </Text>
+
                   <Text
                     style={[
                       styles.dateNum,
                       item.booking_count > 0 && styles.dateActiveText,
                       holiday && styles.dateHolidayText,
+                      isSelected && styles.dateSelectedText,
                     ]}
                   >
                     {new Date(item.date).getDate()}
                   </Text>
+
                   {/* <Text
-                    style={[
-                      styles.dateCount,
-                      item.booking_count > 0 && styles.dateCountActive,
-                    ]}
-                  >
-                    {item.booking_count}
-                  </Text> */}
+          style={[
+            styles.dateCount,
+            item.booking_count > 0 && styles.dateCountActive,
+          ]}
+        >
+          {item.booking_count}
+        </Text> */}
                 </TouchableOpacity>
               );
-            })}
-          </View>
+            }}
+          />
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Appointment</Text>
@@ -280,7 +336,9 @@ const BarberDashboard = () => {
                     style={styles.customerAvatar}
                   />
                   <View style={styles.appointmentText}>
-                    <Text style={styles.customerName}>{item.customer_name}</Text>
+                    <Text style={styles.customerName}>
+                      {item.customer_name}
+                    </Text>
                     <Text style={styles.customerService}>
                       {formatServiceLabel(item.services)}
                     </Text>
@@ -288,13 +346,15 @@ const BarberDashboard = () => {
                   <View
                     style={[
                       styles.statusBadge,
-                      item.status.toLowerCase() === 'completed' && styles.statusSuccess,
+                      item.status.toLowerCase() === 'completed' &&
+                        styles.statusSuccess,
                     ]}
                   >
                     <Text
                       style={[
                         styles.statusText,
-                        item.status.toLowerCase() === 'completed' && styles.statusSuccessText,
+                        item.status.toLowerCase() === 'completed' &&
+                          styles.statusSuccessText,
                       ]}
                     >
                       {statusLabel(item.status)}
@@ -305,9 +365,15 @@ const BarberDashboard = () => {
               ))
             ) : (
               <View style={styles.emptyState}>
-                <Icon name="calendar-o" size={24} color={premiumColors.primary} />
+                <Icon
+                  name="calendar-o"
+                  size={24}
+                  color={premiumColors.primary}
+                />
                 <Text style={styles.emptyTitle}>No appointments found</Text>
-                <Text style={styles.emptySubtitle}>The dashboard API returned no appointments yet.</Text>
+                <Text style={styles.emptySubtitle}>
+                  The dashboard API returned no appointments yet.
+                </Text>
               </View>
             )}
           </View>
@@ -317,7 +383,9 @@ const BarberDashboard = () => {
   );
 };
 
-const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors']) =>
+const createStyles = (
+  premiumColors: ReturnType<typeof usePremiumTheme>['colors'],
+) =>
   StyleSheet.create({
     screen: {
       flex: 1,
@@ -568,6 +636,10 @@ const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors'
       backgroundColor: premiumColors.canvas,
       borderStyle: 'dashed',
     },
+    datePillSelected: {
+      borderWidth: 2,
+      borderColor: premiumColors.secondary,
+    },
     dateDay: {
       color: premiumColors.muted,
       fontSize: 12,
@@ -593,6 +665,9 @@ const createStyles = (premiumColors: ReturnType<typeof usePremiumTheme>['colors'
     },
     dateHolidayText: {
       color: premiumColors.primary,
+    },
+    dateSelectedText: {
+      color: premiumColors.secondary,
     },
     sectionHeader: {
       flexDirection: 'row',

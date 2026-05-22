@@ -49,7 +49,7 @@ export const useAddService = () => {
         mutationFn: async (serviceData: any) => {
             const token = await getData("access_token");
             const response = await fetchApi('POST', apiPath.services?.add, token, serviceData);
-            console.log("add service",response);
+            console.log("add service",response,serviceData);
             return response;
         },
     });
@@ -61,7 +61,7 @@ export const useUpdateService = () => {
             const token = await getData("access_token");
             const path = (apiPath.services?.update || '').replace(':id', String(serviceId));
             const response = await fetchApi('PUT', path, token, serviceData);
-            console.log("update service",response);
+            console.log("update service",response,serviceData);
             return response;
         },
     });
