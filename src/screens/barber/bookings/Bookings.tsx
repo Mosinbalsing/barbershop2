@@ -187,8 +187,13 @@ const formatServiceLabel = (services: BookingApiItem['services']) => {
     .join(', ');
 };
 
-const mapBookings = (items: BookingApiItem[]): BookingCardItem[] =>
-  items.map(item => ({
+const mapBookings = (
+  items: BookingApiItem[] | undefined | null
+): BookingCardItem[] => {
+  if (!items || !Array.isArray(items)) {
+    return [];
+  }
+  return items.map(item => ({
     id: `#${item.booking_id}`,
     name: item.customer_name,
     service: formatServiceLabel(item.services),
@@ -196,6 +201,7 @@ const mapBookings = (items: BookingApiItem[]): BookingCardItem[] =>
     time: item.start_time,
     date: item.booking_date,
   }));
+};
 
 const Bookings = () => {
   const navigation = useNavigation<any>();
@@ -218,7 +224,13 @@ const Bookings = () => {
     date: activeTab === 'past' ? selectedDate : undefined,
   });
   const displayBookings = useMemo(() => {
-    const mapped = mapBookings((bookingsData as BookingApiItem[] | undefined) || []);
+    const bookingsArray = Array.isArray(bookingsData) 
+      ? bookingsData 
+      : (bookingsData as any)?.data 
+        ? (bookingsData as any).data 
+        : [];
+    
+    const mapped = mapBookings(bookingsArray as BookingApiItem[]);
 
     return mapped.filter(item => {
       const query = `${item.name} ${item.service} ${item.id}`.toLowerCase();

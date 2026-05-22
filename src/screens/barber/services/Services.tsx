@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, KeyboardAvoidingView, Keyboard } from 'react-native';
 import {
   FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -25,6 +26,7 @@ import { useAddService, useCategoryAdd, useCategoryDelete, useDeleteService, use
 
 const Services = () => {
   const serviceListRef = useRef<FlatList<any>>(null);
+  const serviceNameInputRef = useRef<TextInput>(null);
   const { colors: premiumColors } = usePremiumTheme();
   const styles = useMemo(() => createStyles(premiumColors), [premiumColors]);
   const [categories, setCategories] = useState<Array<any>>([]);
@@ -209,6 +211,19 @@ const Services = () => {
     console.log('Services: modalOpen changed ->', modalOpen);
   }, [modalOpen]);
 
+  // Manage keyboard with modal open/close
+  useEffect(() => {
+    if (modalOpen) {
+      // Open keyboard when modal opens
+      setTimeout(() => {
+        serviceNameInputRef.current?.focus();
+      }, 300);
+    } else {
+      // Close keyboard when modal closes
+      Keyboard.dismiss();
+    }
+  }, [modalOpen]);
+
   const handleAddCategoryClick = () => {
     setShowCategoryInput(v => !v);
   };
@@ -275,12 +290,15 @@ const Services = () => {
 
   // Hide the parent tab bar when the add/edit modal is open
   useEffect(() => {
-    const parent = (navigation as any)?.getParent?.();
-    if (parent && parent.setOptions) {
-      parent.setOptions({ tabBarStyle: { display: modalOpen ? 'none' : 'flex' } });
+    if (modalOpen) {
+      const parent = (navigation as any)?.getParent?.();
+      if (parent && parent.setOptions) {
+        parent.setOptions({ tabBarStyle: { display: 'none' } });
+      }
     }
-    // cleanup: restore when component unmounts
+    // cleanup: restore when component unmounts or modal closes
     return () => {
+      const parent = (navigation as any)?.getParent?.();
       if (parent && parent.setOptions) {
         parent.setOptions({ tabBarStyle: { display: 'flex' } });
       }
@@ -455,108 +473,116 @@ const Services = () => {
             activeOpacity={1}
             onPress={handleCloseModal}
           />
-          <View style={styles.sheet}>
-            <TouchableOpacity
-              style={styles.closeIcon}
-              onPress={handleCloseModal}
+          <KeyboardAvoidingView style={styles.sheet} behavior="padding">
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={true}
+              contentContainerStyle={styles.sheetScrollContent}
+              keyboardShouldPersistTaps="handled"
             >
-              <Icon name="close" size={22} color={premiumColors.ink} />
-            </TouchableOpacity>
-            <Text style={styles.sheetTitle}>{editingServiceId ? 'Edit Service' : 'Add Service'}</Text>
-            {showCategoryInput && (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TextInput
-                  placeholder="New Category Name"
-                  placeholderTextColor={premiumColors.muted}
-                  style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                  value={newCategory}
-                  onChangeText={setNewCategory}
-                  autoFocus
-                />
+              <TouchableOpacity
+                style={styles.closeIcon}
+                onPress={handleCloseModal}
+              >
+                <Icon name="close" size={22} color={premiumColors.ink} />
+              </TouchableOpacity>
+              <Text style={styles.sheetTitle}>{editingServiceId ? 'Edit Service' : 'Add Service'}</Text>
+              {showCategoryInput && (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput
+                    placeholder="New Category Name"
+                    placeholderTextColor={premiumColors.muted}
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={newCategory}
+                    onChangeText={setNewCategory}
+                    autoFocus
+                  />
+                  <TouchableOpacity
+                    style={styles.saveCategoryButton}
+                    onPress={handleSaveNewCategory}
+                  >
+                    <Icon name="check" size={18} color={premiumColors.surface} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <TextInput
+                placeholder="Service name"
+                placeholderTextColor={premiumColors.muted}
+                style={styles.input}
+                ref={serviceNameInputRef}
+                value={form.name}
+                onChangeText={name => setForm(prev => ({ ...prev, name }))}
+              />
+              <TextInput
+                placeholder="Price"
+                placeholderTextColor={premiumColors.muted}
+                style={styles.input}
+                keyboardType="numeric"
+                value={form.price}
+                onChangeText={price =>
+                  setForm(prev => ({
+                    ...prev,
+                    price: price.replace(/[^0-9]/g, ''),
+                  }))
+                }
+              />
+              <TextInput
+                placeholder="Duration eg. 30 min"
+                placeholderTextColor={premiumColors.muted}
+                style={styles.input}
+                value={form.duration}
+                onChangeText={duration =>
+                  setForm(prev => ({ ...prev, duration }))
+                }
+              />
+              <TextInput
+                placeholder="Description"
+                placeholderTextColor={premiumColors.muted}
+                style={styles.input}
+                value={form.description}
+                onChangeText={description =>
+                  setForm(prev => ({ ...prev, description }))
+                }
+              />
+              <View style={styles.categoryRowCompact}>
+                {categories
+                  .filter(item => item.id !== 'all')
+                  .map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.categoryPill,
+                        form.category === item.id && styles.categoryPillActive,
+                      ]}
+                      onPress={() =>
+                        setForm(prev => ({ ...prev, category: item.id }))
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.categoryText,
+                          form.category === item.id && styles.categoryTextActive,
+                        ]}
+                      >
+                        {item.shortName}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 <TouchableOpacity
-                  style={styles.saveCategoryButton}
-                  onPress={handleSaveNewCategory}
+                  style={styles.addCategoryButton}
+                  onPress={handleAddCategoryClick}
                 >
-                  <Icon name="check" size={18} color={premiumColors.surface} />
+                  <Text style={styles.addCategoryButtonText}>+ Add Category</Text>
                 </TouchableOpacity>
               </View>
-            )}
-            <TextInput
-              placeholder="Service name"
-              placeholderTextColor={premiumColors.muted}
-              style={styles.input}
-              value={form.name}
-              onChangeText={name => setForm(prev => ({ ...prev, name }))}
-            />
-            <TextInput
-              placeholder="Price"
-              placeholderTextColor={premiumColors.muted}
-              style={styles.input}
-              keyboardType="numeric"
-              value={form.price}
-              onChangeText={price =>
-                setForm(prev => ({
-                  ...prev,
-                  price: price.replace(/[^0-9]/g, ''),
-                }))
-              }
-            />
-            <TextInput
-              placeholder="Duration eg. 30 min"
-              placeholderTextColor={premiumColors.muted}
-              style={styles.input}
-              value={form.duration}
-              onChangeText={duration =>
-                setForm(prev => ({ ...prev, duration }))
-              }
-            />
-            <TextInput
-              placeholder="Description"
-              placeholderTextColor={premiumColors.muted}
-              style={styles.input}
-              value={form.description}
-              onChangeText={description =>
-                setForm(prev => ({ ...prev, description }))
-              }
-            />
-            <View style={styles.categoryRowCompact}>
-              {categories
-                .filter(item => item.id !== 'all')
-                .map(item => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.categoryPill,
-                      form.category === item.id && styles.categoryPillActive,
-                    ]}
-                    onPress={() =>
-                      setForm(prev => ({ ...prev, category: item.id }))
-                    }
-                  >
-                    <Text
-                      style={[
-                        styles.categoryText,
-                        form.category === item.id && styles.categoryTextActive,
-                      ]}
-                    >
-                      {item.shortName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
               <TouchableOpacity
-                style={styles.addCategoryButton}
-                onPress={handleAddCategoryClick}
+                style={styles.primaryButton}
+                onPress={saveService}
               >
-                <Text style={styles.addCategoryButtonText}>+ Add Category</Text>
+                <Text style={styles.primaryButtonText}>Save Service</Text>
               </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={saveService}
-            >
-              <Text style={styles.primaryButtonText}>Save Service</Text>
-            </TouchableOpacity>
-          </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       )}
       <AnimatedConfirmPopup
@@ -861,10 +887,16 @@ const createStyles = (
       backgroundColor: premiumColors.surface,
       borderTopLeftRadius: 26,
       borderTopRightRadius: 26,
-      padding: 22,
+      maxHeight: '90%',
+      overflow: 'hidden',
       // Ensure sheet is elevated above content on Android and iOS
       zIndex: zIndices.modalSheet,
       elevation: zIndices.modalSheet,
+    },
+    sheetScrollContent: {
+      paddingHorizontal: 22,
+      paddingTop: 22,
+      paddingBottom: 150,
     },
     sheetHandle: {
       width: 44,

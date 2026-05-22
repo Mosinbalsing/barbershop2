@@ -10,6 +10,7 @@ import {
   premiumSpacing,
   usePremiumTheme,
 } from '../../../shared/theme/premiumTheme';
+import { useGetProfile } from './ProfileApi';
 
 const appearanceOptions: Array<{ label: string; value: PremiumThemeMode; icon: string }> = [
   { label: 'Light', value: 'light', icon: 'sun-o' },
@@ -24,6 +25,14 @@ const Profile = () => {
   const { colors, mode, setMode } = usePremiumTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { data: profileData, isLoading } = useGetProfile();
+  
+  const profile = profileData as any || {};
+  const barberName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : 'Barber';
+  const barberRole = profile?.location || 'Professional Barber';
+  const rating = profile?.rating || '4.9';
+  const totalBookings = profile?.total_bookings || '2K';
+  const services = profile?.services || [];
 
   const handleLogout = async () => {
     await removeData('access_token');
@@ -45,8 +54,8 @@ const Profile = () => {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileCard}>
           <Image source={require('../../../assets/images/PNG/logo-light.png')} style={styles.avatar} />
-          <Text style={styles.name}>Shoyeb Khan</Text>
-          <Text style={styles.role}>Senior Barber, New York</Text>
+          <Text style={styles.name}>{barberName}</Text>
+          <Text style={styles.role}>{barberRole}</Text>
           <View style={styles.actionRow}>
             <TouchableOpacity style={styles.actionButton}><Icon name="phone" size={15} color={colors.primary} /><Text style={styles.actionText}>Call</Text></TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}><Icon name="comment-o" size={15} color={colors.primary} /><Text style={styles.actionText}>Message</Text></TouchableOpacity>
@@ -79,22 +88,31 @@ const Profile = () => {
         </View>
 
         <View style={styles.metrics}>
-          <MetricCard label="Rating" value="4.9" detail="Customer score" />
-          <MetricCard label="Bookings" value="2K" detail="All time" tone="secondary" />
+          <MetricCard label="Rating" value={String(rating)} detail="Customer score" />
+          <MetricCard label="Bookings" value={String(totalBookings)} detail="All time" tone="secondary" />
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="sign-out" size={16} color={colors.surface} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
-        {['Hair & Beard Cut', 'Hair Blonde', 'Full Body Massage'].map((item, index) => (
-          <View key={item} style={styles.serviceRow}>
-            <View>
-              <Text style={styles.serviceName}>{item}</Text>
-              <Text style={styles.serviceTime}>{index === 1 ? '30 Min' : '40 Min'}</Text>
-            </View>
-            <Text style={styles.servicePrice}>${index === 0 ? '50' : index === 1 ? '30' : '70'}</Text>
+        {services.length > 0 ? (
+          <>
+            <Text style={[styles.name, { fontSize: 18, marginTop: 20, marginBottom: 12 }]}>Services</Text>
+            {services.map((service: any, index: number) => (
+              <View key={index} style={styles.serviceRow}>
+                <View>
+                  <Text style={styles.serviceName}>{service.name || 'Service'}</Text>
+                  <Text style={styles.serviceTime}>{service.duration || '30 Min'}</Text>
+                </View>
+                <Text style={styles.servicePrice}>₹{service.cost || service.price || '0'}</Text>
+              </View>
+            ))}
+          </>
+        ) : (
+          <View style={[styles.serviceRow, { justifyContent: 'center', alignItems: 'center' }]}>
+            <Text style={styles.serviceName}>No services added yet</Text>
           </View>
-        ))}
+        )}
       </ScrollView>
     </View>
   );
