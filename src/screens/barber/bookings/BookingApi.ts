@@ -17,7 +17,7 @@ const buildOwnerBookingsUrl = ({ type, date }: OwnerBookingsParams) => {
     }
 
     const queryString = params.toString();
-    return queryString ? `${apiPath.booking.owner.list}?${queryString}` : apiPath.booking.owner.list;
+    return queryString ? `${apiPath.booking.owner.owner_bookings}?${queryString}` : apiPath.booking.owner.owner_bookings;
 };
 
 export const useOwnerBookings = ({ type, date }: OwnerBookingsParams) => {
