@@ -44,6 +44,7 @@ type RootStackParamList = {
   PhoneNoS: undefined;
   RegisterScreen: undefined;
   barber: undefined;
+  user: undefined;
   forgetPass: undefined;
 };
 
@@ -76,6 +77,11 @@ export default function LoginScreen() {
       navigation.reset({
         index: 0,
         routes: [{ name: 'barber' }],
+      });
+    } else if (role === 'user' || role === 'customer') {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'user' }],
       });
     } else {
       navigation.reset({
