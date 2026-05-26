@@ -8,11 +8,23 @@ export const apiPath = {
     resetPassword: 'api/auth/reset-password/',
     sendResetOtp: 'api/auth/send-reset-otp/',
   },
+  profiles:{
+    owner:'/api/auth/owner-profile/',
+    customer:'/api/auth/customer-profile/',
+  },
   barberDashboard: 'api/bookings/home-dashboard/',
 
-  booking:{
-    owner:{
-      list:'api/bookings/owner-bookings/',
+  booking: {
+    owner: {
+      available_slots: 'api/bookings/get-available-slots/',
+      available_dates: 'api/bookings/get-available-dates/',
+      add_online_bookings: 'api/bookings/add-online-booking/',
+      add_offline_bookings: 'api/bookings/add-offline-booking/',
+      owner_bookings: 'api/bookings/get-owner-bookings/',
+    },
+    customer: {
+      customer_bookings: 'api/bookings/get-customer-bookings/',
+      cancel_booking: 'api/bookings/cancel-booking/:id/',
     },
   },
   services: {
@@ -24,7 +36,6 @@ export const apiPath = {
     add_category: 'api/services/categories/add/',
     delete_category: 'api/services/categories/delete/:id/',
   },
-  
 
   settings: {
     get: 'api/settings/',

@@ -48,7 +48,7 @@ export const useAddService = () => {
     return useMutation({
         mutationFn: async (serviceData: any) => {
             const token = await getData("access_token");
-            const response = await fetchApi('POST', apiPath.services?.add, token, serviceData);
+            const response = await fetchApi('POST', apiPath.services?.add, token, false, serviceData);
             console.log("add service",response,serviceData);
             return response;
         },
@@ -60,7 +60,7 @@ export const useUpdateService = () => {
         mutationFn: async ({ serviceId, serviceData }: { serviceId: number; serviceData: any }) => {
             const token = await getData("access_token");
             const path = (apiPath.services?.update || '').replace(':id', String(serviceId));
-            const response = await fetchApi('PUT', path, token, serviceData);
+            const response = await fetchApi('PUT', path, token, false, serviceData);
             console.log("update service",response,serviceData);
             return response;
         },
@@ -96,8 +96,8 @@ export const useCategoryAdd = () => {
     return useMutation({
         mutationFn: async (categoryData: { name: string }) => {
             const token = await getData("access_token");
-            const response = await fetchApi('POST', apiPath.services?.add_category, token, categoryData);
-            console.log("add category",response);
+            const response = await fetchApi('POST', apiPath.services?.add_category, token, false, categoryData);
+            console.log("add category",response,categoryData);
             return response;
         },
     });
