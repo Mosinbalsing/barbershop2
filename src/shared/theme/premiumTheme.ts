@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from 'react';
+import { useColorScheme } from 'react-native';
 import { MMKV } from 'react-native-mmkv';
 
-export type PremiumThemeMode = 'light' | 'dark';
+export type PremiumThemeMode = 'light' | 'dark' | 'system';
 
 const THEME_KEY = 'app_theme_mode';
 const themeStorage = new MMKV();
@@ -33,7 +34,7 @@ const darkColors = {
 };
 
 const savedMode = themeStorage.getString(THEME_KEY) as PremiumThemeMode | undefined;
-let currentMode: PremiumThemeMode = savedMode === 'dark' ? 'dark' : 'light';
+let currentMode: PremiumThemeMode = savedMode === 'dark' ? 'dark' : (savedMode === 'light' ? 'light' : 'system');
 const listeners = new Set<() => void>();
 
 export const premiumColors = { ...(currentMode === 'dark' ? darkColors : lightColors) };
@@ -41,13 +42,19 @@ export const premiumColors = { ...(currentMode === 'dark' ? darkColors : lightCo
 export const setPremiumThemeMode = (mode: PremiumThemeMode) => {
   currentMode = mode;
   themeStorage.set(THEME_KEY, mode);
-  Object.assign(premiumColors, mode === 'dark' ? darkColors : lightColors);
+  
+  // Static assignment for top-level non-hook components, defaulting system to light
+  const resolvedMode = mode === 'system' ? 'light' : mode;
+  Object.assign(premiumColors, resolvedMode === 'dark' ? darkColors : lightColors);
+  
   listeners.forEach(listener => listener());
 };
 
 export const getPremiumThemeMode = () => currentMode;
 
 export const usePremiumTheme = () => {
+  const systemScheme = useColorScheme();
+
   const mode = useSyncExternalStore(
     listener => {
       listeners.add(listener);
@@ -57,12 +64,18 @@ export const usePremiumTheme = () => {
     () => currentMode,
   );
 
+  const activeMode = mode === 'system'
+    ? (systemScheme === 'dark' ? 'dark' : 'light')
+    : mode;
+
   return {
     mode,
-    colors: mode === 'dark' ? darkColors : lightColors,
+    activeMode,
+    colors: activeMode === 'dark' ? darkColors : lightColors,
     setMode: setPremiumThemeMode,
   };
 };
+
 
 export const premiumShadow = {
   shadowColor: '#20232A',

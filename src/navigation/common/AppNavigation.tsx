@@ -11,6 +11,27 @@ import BookingDetails from "../../screens/barber/bookings/BookingDetails";
 import Notifications from "../../screens/barber/notifications/Notifications";
 import ForgetPassScreen from "../../screens/auth/forget/ForgetPass";
 
+// Admin Sub-screens
+import AdminBookingDetails from "../../screens/admin/AdminBookingDetails";
+import AdminFormDetails from "../../screens/admin/AdminFormDetails";
+import AdminReplyEmail from "../../screens/admin/AdminReplyEmail";
+
+// Barber More Flow Screens
+import BarberProfileView from "../../screens/barber/more/BarberProfileView";
+import BarberProfileEdit from "../../screens/barber/more/BarberProfileEdit";
+import BarberNotifications from "../../screens/barber/more/BarberNotifications";
+import BarberNotificationDetail from "../../screens/barber/more/BarberNotificationDetail";
+import BarberShopSettings from "../../screens/barber/more/BarberShopSettings";
+import BarberShopTimingEdit from "../../screens/barber/more/BarberShopTimingEdit";
+import BarberCoupons from "../../screens/barber/more/BarberCoupons";
+import BarberCreateCoupon from "../../screens/barber/more/BarberCreateCoupon";
+import BarberReports from "../../screens/barber/more/BarberReports";
+import BarberRevenueReport from "../../screens/barber/more/BarberRevenueReport";
+import BarberHelpSupport from "../../screens/barber/more/BarberHelpSupport";
+import BarberChatSupport from "../../screens/barber/more/BarberChatSupport";
+
+
+
 // Profile Modular Screens
 import PersonalDetails from "../../screens/user/profile/PersonalDetails";
 import EditDetails from "../../screens/user/profile/EditDetails";
@@ -62,6 +83,25 @@ const AppNavigation = () => {
       <Stack.Screen name="WhyChooseUs" component={WhyChooseUs} />
       <Stack.Screen name="SpecialOffer" component={SpecialOffer} />
       <Stack.Screen name="ServiceDetails" component={ServiceDetails} />
+
+      {/* Admin sub-routes */}
+      <Stack.Screen name="AdminBookingDetails" component={AdminBookingDetails} />
+      <Stack.Screen name="AdminFormDetails" component={AdminFormDetails} />
+      <Stack.Screen name="AdminReplyEmail" component={AdminReplyEmail} />
+
+      {/* Barber More sub-routes */}
+      <Stack.Screen name="BarberProfileView" component={BarberProfileView} />
+      <Stack.Screen name="BarberProfileEdit" component={BarberProfileEdit} />
+      <Stack.Screen name="BarberNotifications" component={BarberNotifications} />
+      <Stack.Screen name="BarberNotificationDetail" component={BarberNotificationDetail} />
+      <Stack.Screen name="BarberShopSettings" component={BarberShopSettings} />
+      <Stack.Screen name="BarberShopTimingEdit" component={BarberShopTimingEdit} />
+      <Stack.Screen name="BarberCoupons" component={BarberCoupons} />
+      <Stack.Screen name="BarberCreateCoupon" component={BarberCreateCoupon} />
+      <Stack.Screen name="BarberReports" component={BarberReports} />
+      <Stack.Screen name="BarberRevenueReport" component={BarberRevenueReport} />
+      <Stack.Screen name="BarberHelpSupport" component={BarberHelpSupport} />
+      <Stack.Screen name="BarberChatSupport" component={BarberChatSupport} />
     </Stack.Navigator>
   )
 }

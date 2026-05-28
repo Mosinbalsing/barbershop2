@@ -1,194 +1,73 @@
 
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { Platform, StyleSheet, View } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { usePremiumTheme } from '../../shared/theme/premiumTheme';
 
 import BarberDashboard from '../../screens/barber/dashboard/BarberDashboard';
 import Bookings from '../../screens/barber/bookings/Bookings';
 import Services from '../../screens/barber/services/Services';
 import Setting from '../../screens/barber/setting/Setting';
-import Profile from '../../screens/barber/profile/Profile';
+import BarberMore from '../../screens/barber/more/BarberMore';
 
-const Tab = createMaterialTopTabNavigator();
-
-type TabPalette = {
-  navBackground: string;
-  navBorder: string;
-  navTopLine: string;
-  inactiveText: string;
-  inactiveIcon: string;
-  activeIconBubble: string;
-  activeIcon: string;
-  activeText: string;
-};
-
-const getTabPalette = (
-  mode: ReturnType<typeof usePremiumTheme>['mode'],
-  colors: ReturnType<typeof usePremiumTheme>['colors'],
-): TabPalette => {
-  if (mode === 'dark') {
-    return {
-      navBackground: '#2A2255',
-      navBorder: 'rgba(255,255,255,0.08)',
-      navTopLine: 'rgba(255,255,255,0.18)',
-      inactiveText: '#AEA8CF',
-      inactiveIcon: '#B9B4D7',
-      activeIconBubble: 'rgba(255,255,255,0.2)',
-      activeIcon: '#FFFFFF',
-      activeText: '#FFFFFF',
-    };
-  }
-
-  return {
-    navBackground: '#6D4CF3',
-    navBorder: 'rgba(106,83,214,0.35)',
-    navTopLine: 'rgba(255,255,255,0.25)',
-    inactiveText: '#CFC6FF',
-    inactiveIcon: '#E7E0FF',
-    activeIconBubble: 'rgba(255,255,255,0.24)',
-    activeIcon: '#FFFFFF',
-    activeText: '#FFFFFF',
-  };
-};
-
-const renderIcon = (icon: string, label: string, focused: boolean, palette: TabPalette) => (
-  <View style={styles.tabItemWrap}>
-    <View
-      style={[
-        styles.iconBubble,
-        { backgroundColor: focused ? palette.activeIconBubble : 'transparent' },
-      ]}
-    >
-      <Icon
-        name={icon}
-        size={17}
-        color={focused ? palette.activeIcon : palette.inactiveIcon}
-      />
-    </View>
-    <Text
-      style={[
-        styles.tabLabel,
-        {
-          color: focused ? palette.activeText : palette.inactiveText,
-          fontWeight: focused ? '800' : '600',
-        },
-      ]}
-      numberOfLines={1}
-    >
-      {label}
-    </Text>
-  </View>
-);
+const Tab = createBottomTabNavigator();
 
 const BarberBottomTabs = () => {
   const { colors, mode } = usePremiumTheme();
-  const darkMode = mode === 'dark';
-  const palette = getTabPalette(mode, colors);
 
   return (
     <Tab.Navigator
-      tabBarPosition="bottom"
-      screenOptions={{
-        swipeEnabled: true,
-        animationEnabled: true,
-        tabBarShowLabel: false,
-        tabBarIndicatorStyle: { backgroundColor: 'transparent', height: 0 },
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          height: 78,
-          marginHorizontal: 16,
-          marginBottom: Platform.select({ ios: 18, android: 10 }),
-          bottom: 0,
-          left: 0,
-          right: 0,
-          paddingBottom: 8,
-          paddingTop: 4,
-          justifyContent: 'center',
-          borderRadius: 26,
-          position: 'absolute',
-          backgroundColor: palette.navBackground,
-          borderWidth: 1,
-          borderColor: palette.navBorder,
-          borderTopColor: palette.navTopLine,
-          elevation: 20,
-          shadowColor: darkMode ? '#120F1E' : '#5A3DD6',
-          shadowOpacity: darkMode ? 0.45 : 0.35,
-          shadowRadius: darkMode ? 20 : 24,
-          shadowOffset: { width: 0, height: 12 },
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.line,
+          height: Platform.OS === 'ios' ? 85 : 65,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+          paddingTop: 10,
+          elevation: 0,
+          shadowOpacity: 0,
         },
-        tabBarPressColor: 'transparent',
-        tabBarItemStyle: {
-          paddingHorizontal: 0,
-          marginTop: 1,
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+          marginTop: 4,
         },
-      }}
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName = 'ellipse'; // default fallback
+          
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Bookings') {
+            iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'Services') {
+            iconName = focused ? 'cut' : 'cut-outline';
+          } else if (route.name === 'Setting') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          } else if (route.name === 'More') {
+            iconName = focused ? 'menu' : 'menu-outline';
+          }
+
+          return (
+            <View>
+              <Ionicons name={iconName} size={24} color={color} />
+            </View>
+          );
+        },
+      })}
     >
-      <Tab.Screen
-        name="Home"
-        component={BarberDashboard}
-        options={{
-          tabBarIcon: ({ focused }) =>
-            renderIcon('home', 'Home', focused, palette),
-        }}
-      />
-      <Tab.Screen
-        name="Bookings"
-        component={Bookings}
-        options={{
-          tabBarIcon: ({ focused }) =>
-            renderIcon('calendar', 'Bookings', focused, palette),
-        }}
-      />
-      <Tab.Screen
-        name="Services"
-        component={Services}
-        options={{
-          tabBarIcon: ({ focused }) =>
-            renderIcon('briefcase', 'Services', focused, palette),
-        }}
-      />
-      <Tab.Screen
-        name="Setting"
-        component={Setting}
-        options={{
-          tabBarIcon: ({ focused }) =>
-            renderIcon('cog', 'Setting', focused, palette),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={Profile}
-        options={{
-          tabBarIcon: ({ focused }) =>
-            renderIcon('user', 'Profile', focused, palette),
-        }}
-      />
+      <Tab.Screen name="Home" component={BarberDashboard} />
+      <Tab.Screen name="Bookings" component={Bookings} />
+      <Tab.Screen name="Services" component={Services} />
+      <Tab.Screen name="Setting" component={Setting} />
+      <Tab.Screen name="More" component={BarberMore} />
     </Tab.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  tabItemWrap: {
-    minWidth: 66,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-  },
-  iconBubble: {
-    width: 30,
-    height: 30,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabLabel: {
-    fontSize: 10,
-    marginTop: 3,
-    textAlign: 'center',
-    letterSpacing: 0.15,
-  },
-});
 
 export default BarberBottomTabs;

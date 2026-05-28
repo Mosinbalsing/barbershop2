@@ -15,6 +15,7 @@ import { useGetProfile } from './ProfileApi';
 const appearanceOptions: Array<{ label: string; value: PremiumThemeMode; icon: string }> = [
   { label: 'Light', value: 'light', icon: 'sun-o' },
   { label: 'Dark', value: 'dark', icon: 'moon-o' },
+  { label: 'System', value: 'system', icon: 'laptop' },
 ];
 
 type RootStackParamList = {

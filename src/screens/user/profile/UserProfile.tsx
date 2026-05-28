@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Switch, Alert, TouchableOpacity, Text } from 'react-native';
 import { Typography } from '../../../shared/components/Typography';
 import { Header } from '../../../shared/components/Header';
 import { Icon } from '../../../shared/components/Icon';
@@ -81,18 +81,39 @@ const UserProfile = () => {
             onPress={() => navigation.navigate('NotificationSettings')}
           />
           
-          {/* Custom Dark Mode Switch Row */}
-          <View style={[styles.switchRow, { borderBottomColor: colors.line }]}>
-            <View style={styles.switchLeft}>
-              <Icon name={mode === 'dark' ? 'moon' : 'sunny-outline'} size={24} color="primary" />
-              <Typography variant="body" style={styles.switchTitle}>Dark Mode</Typography>
+          {/* Custom Appearance Row */}
+          <View style={[styles.appearanceRow, { borderBottomColor: colors.line }]}>
+            <View style={styles.appearanceLeft}>
+              <Icon name="color-palette-outline" size={24} color="primary" />
+              <Typography variant="body" style={styles.appearanceTitle}>Appearance</Typography>
             </View>
-            <Switch
-              value={mode === 'dark'}
-              onValueChange={(val) => setMode(val ? 'dark' : 'light')}
-              trackColor={{ false: colors.line, true: colors.primary }}
-              thumbColor={colors.surface}
-            />
+            <View style={[styles.segmented, { backgroundColor: colors.canvas, borderColor: colors.line }]}>
+              {([
+                { label: 'Light', value: 'light', icon: 'sunny-outline' },
+                { label: 'Dark', value: 'dark', icon: 'moon-outline' },
+                { label: 'System', value: 'system', icon: 'laptop-outline' },
+              ] as const).map(item => {
+                const active = mode === item.value;
+                return (
+                  <TouchableOpacity
+                    key={item.value}
+                    style={[
+                      styles.segment,
+                      active && { backgroundColor: colors.primary }
+                    ]}
+                    onPress={() => setMode(item.value)}
+                  >
+                    <Icon name={item.icon} size={15} color={active ? 'surface' : 'muted'} />
+                    <Text style={[
+                      styles.segmentText,
+                      active ? { color: colors.surface, fontWeight: 'bold' } : { color: colors.muted }
+                    ]}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
           <MenuItem
@@ -168,20 +189,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 24,
   },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  appearanceRow: {
+    flexDirection: 'column',
     paddingVertical: 16,
     borderBottomWidth: 1,
+    gap: 12,
   },
-  switchLeft: {
+  appearanceLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  switchTitle: {
+  appearanceTitle: {
     marginLeft: 16,
-    fontWeight: '500',
+    fontWeight: '700',
+  },
+  segmented: {
+    flexDirection: 'row',
+    borderRadius: 14,
+    padding: 4,
+    borderWidth: 1,
+  },
+  segment: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderRadius: 11,
+    paddingVertical: 8,
+  },
+  segmentText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   loyaltyBanner: {
     flexDirection: 'row',
