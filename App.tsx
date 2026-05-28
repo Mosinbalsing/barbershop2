@@ -6,6 +6,7 @@ import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/
 import AppNavigation from  './src/navigation/common/AppNavigation'
 import { usePremiumTheme } from './src/shared/theme/premiumTheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NotificationBanner } from './src/shared/components/NotificationBanner';
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <NavigationContainer theme={navigationTheme}>
             <AppNavigation/>
+            <NotificationBanner />
           </NavigationContainer>
         </QueryClientProvider>
       </SafeAreaView>
